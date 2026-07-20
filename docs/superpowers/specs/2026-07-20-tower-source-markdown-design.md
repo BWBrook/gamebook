@@ -101,7 +101,7 @@ The completed increment must satisfy all of these checks:
 5. The story readme records the source URL, edition details, retrieval date,
    checksum, conversion decisions, rights evidence, and any unresolved textual
    differences.
-6. Markdown lint-style checks find no trailing whitespace, malformed headings,
-   or replacement characters.
+6. Markdown lint-style checks find no trailing whitespace, extra blank line at
+   end of file, malformed headings, or replacement characters.
 7. The repository is committed, pushed, and clean, with local `main` matching
    `origin/main`.

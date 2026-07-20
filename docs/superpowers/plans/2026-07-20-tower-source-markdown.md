@@ -96,7 +96,8 @@ pandoc --from=html --to=gfm --wrap=none \
   s/^## <span id="tower2">CHAPTER 2<\/span>$/## Chapter 2/;
   s/^## <span id="tower3">CHAPTER 3<\/span>$/## Chapter 3/;
   s/([[:alpha:]])- ([[:alpha:]])/$1-$2/g;
-' > stories/public_domain/howard/tower_of_the_elephant/source.md
+' | perl -0pe 's/\n+\z/\n/' \
+  > stories/public_domain/howard/tower_of_the_elephant/source.md
 ```
 
 This deliberately repairs the six observed spacing artefacts:
@@ -140,7 +141,8 @@ awk '
   s/^## <span id="tower2">CHAPTER 2<\/span>$/## Chapter 2/;
   s/^## <span id="tower3">CHAPTER 3<\/span>$/## Chapter 3/;
   s/([[:alpha:]])- ([[:alpha:]])/$1-$2/g;
-' > "$gamebook_source_tmp/expected-narrative.md"
+' | perl -0pe 's/\n+\z/\n/' \
+  > "$gamebook_source_tmp/expected-narrative.md"
 
 awk '/^## Chapter 1$/ { in_story = 1 } in_story { print }' \
   stories/public_domain/howard/tower_of_the_elephant/source.md \
@@ -289,6 +291,7 @@ test "$(rg -c '^# The Tower of the Elephant$' stories/public_domain/howard/tower
 test "$(rg -c '^## Chapter [123]$' stories/public_domain/howard/tower_of_the_elephant/source.md)" -eq 3
 test "$(wc -w < stories/public_domain/howard/tower_of_the_elephant/source.md)" -ge 8000
 test "$(wc -w < stories/public_domain/howard/tower_of_the_elephant/source.md)" -le 12000
+perl -0ne 'exit 1 if /\n\n\z/' stories/public_domain/howard/tower_of_the_elephant/source.md
 test -z "$(git grep -n -E '<[^>]+>|Project Gutenberg|TABLE OF CONTENTS|THE END|!\[|^-{10,}$' -- stories/public_domain/howard/tower_of_the_elephant/source.md || true)"
 git status --short
 ```
