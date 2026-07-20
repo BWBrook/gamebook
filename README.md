@@ -12,6 +12,13 @@ public-domain fiction into gamebooks, while also supporting original stories.
 The repository is being established. The rules, implementation infrastructure,
 and story-file formats have not yet been designed.
 
+## Background research
+
+- [Gamebook systems: background research and design guardrails](docs/research/gamebook-systems-background.md)
+  surveys major gamebook approaches, branching and state techniques, recurrent
+  failure modes, public-domain adaptation precedents, and originality/IP
+  guardrails for the eventual system.
+
 ## Story workspaces
 
 - `stories/public_domain/howard/tower_of_the_elephant/` — first adaptation and
