@@ -70,7 +70,8 @@ The file will contain:
 
 Remove Project Gutenberg Australia navigation, licence boilerplate, cover and
 interior images, captions, table of contents, promotional footer, and `THE END`
-display furniture. The story's wording and paragraph order remain unchanged.
+display furniture, including its horizontal section separators. The story's
+wording and paragraph order remain unchanged.
 
 Mechanical normalisation is limited to:
 
@@ -94,7 +95,7 @@ The completed increment must satisfy all of these checks:
 2. It begins with the Maul paragraph and ends with the tower crashing into
    shining shards.
 3. The narrative contains no HTML tags, web navigation, images, PGA licence
-   text, table of contents, or promotional footer.
+   text, table of contents, horizontal separators, or promotional footer.
 4. The complete narrative extracted from `source.md` matches the selected HTML
    after the documented mechanical normalisations.
 5. The story readme records the source URL, edition details, retrieval date,
@@ -104,4 +105,3 @@ The completed increment must satisfy all of these checks:
    or replacement characters.
 7. The repository is committed, pushed, and clean, with local `main` matching
    `origin/main`.
-
