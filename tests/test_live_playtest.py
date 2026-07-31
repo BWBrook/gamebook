@@ -220,3 +220,131 @@ class PersistenceTests(HarnessTestCase):
                 "test-session",
                 self.fixed_clock,
             )
+
+
+class ObserverOperationTests(HarnessTestCase):
+    def test_show_returns_only_current_passage_and_logs_it(self) -> None:
+        loaded = self.start()
+
+        shown = lp.show_current_passage(loaded, self.fixed_clock)
+
+        self.assertIn("## S01 — First", shown)
+        self.assertIn("Reached text.", shown)
+        self.assertNotIn("Unreached secret", shown)
+        self.assertEqual(loaded.events[-1]["type"], "passage_shown")
+
+    def test_notes_preserve_received_text_and_kind(self) -> None:
+        loaded = self.start()
+        text = "I don't trust that silence—yet."
+
+        lp.record_note(loaded, "player", text, self.fixed_clock)
+
+        self.assertEqual(loaded.events[-1]["data"]["text"], text)
+        self.assertEqual(loaded.events[-1]["data"]["kind"], "player")
+
+    def test_rules_lookup_is_case_insensitive_and_logged(self) -> None:
+        loaded = self.start()
+
+        section = lp.record_rules_lookup(loaded, "FORTUNE", self.fixed_clock)
+
+        self.assertIn("Spend after the roll.", section)
+        self.assertEqual(loaded.events[-1]["type"], "rules_lookup")
+        self.assertEqual(loaded.events[-1]["data"]["section"], "Fortune")
+
+    def test_format_state_is_complete_and_deterministic(self) -> None:
+        loaded = self.start()
+
+        formatted = lp.format_state(loaded.state)
+
+        self.assertEqual(
+            formatted,
+            "Passage: S01\n"
+            "Status: active\n"
+            "Attributes: AGI 12 | BRN 13 | CUN 12 | WIL 12\n"
+            "Fortune: 10/10\n"
+            "Stamina: 6/6\n"
+            "Exposure: 0/5\n"
+            "Possessions: Sword\n"
+            "Story marks: —",
+        )
+
+    def test_choice_precedes_valid_referenced_transition(self) -> None:
+        loaded = self.start()
+
+        lp.record_choice(
+            loaded,
+            "Go on",
+            None,
+            "S02",
+            self.fixed_clock,
+        )
+        lp.goto_passage(loaded, "S02", self.fixed_clock)
+
+        self.assertEqual(loaded.state["current_passage"], "S02")
+        self.assertEqual(loaded.workflow, {"choice": None, "roll": None})
+
+    def test_unreferenced_or_undefined_destination_does_not_mutate(self) -> None:
+        loaded = self.start()
+        lp.record_choice(loaded, "Invent a route", None, "E01", self.fixed_clock)
+        before_log = (loaded.directory / "events.jsonl").read_bytes()
+        before_cache = (loaded.directory / "session.json").read_bytes()
+
+        with self.assertRaisesRegex(lp.HarnessError, "not referenced"):
+            lp.goto_passage(loaded, "E01", self.fixed_clock)
+        self.assertEqual(
+            (loaded.directory / "events.jsonl").read_bytes(),
+            before_log,
+        )
+        self.assertEqual(
+            (loaded.directory / "session.json").read_bytes(),
+            before_cache,
+        )
+        with self.assertRaisesRegex(lp.HarnessError, "undefined passage S99"):
+            lp.goto_passage(loaded, "S99", self.fixed_clock)
+
+    def test_invalid_notes_and_rules_lookup_do_not_mutate(self) -> None:
+        loaded = self.start()
+        before_log = (loaded.directory / "events.jsonl").read_bytes()
+        before_cache = (loaded.directory / "session.json").read_bytes()
+
+        with self.assertRaisesRegex(lp.HarnessError, "note text must be non-empty"):
+            lp.record_note(loaded, "player", "  \t", self.fixed_clock)
+        with self.assertRaisesRegex(lp.HarnessError, "unknown note kind"):
+            lp.record_note(loaded, "observer", "A note", self.fixed_clock)
+        with self.assertRaisesRegex(lp.HarnessError, "unknown rules heading"):
+            lp.record_rules_lookup(loaded, "Combat", self.fixed_clock)
+
+        self.assertEqual((loaded.directory / "events.jsonl").read_bytes(), before_log)
+        self.assertEqual((loaded.directory / "session.json").read_bytes(), before_cache)
+
+    def test_second_choice_and_transition_before_choice_are_rejected(self) -> None:
+        loaded = self.start()
+        with self.assertRaisesRegex(lp.HarnessError, "committed choice"):
+            lp.goto_passage(loaded, "S02", self.fixed_clock)
+
+        lp.record_choice(loaded, "Go on", None, "S02", self.fixed_clock)
+        with self.assertRaisesRegex(lp.HarnessError, "unresolved choice"):
+            lp.record_choice(loaded, "Go on again", None, "S02", self.fixed_clock)
+
+    def test_transition_waits_for_a_pending_ordinary_roll(self) -> None:
+        loaded = self.start()
+        lp.record_choice(loaded, "Go on", None, "S02", self.fixed_clock)
+        loaded.workflow["roll"] = {"fortune_status": "pending"}
+
+        with self.assertRaisesRegex(lp.HarnessError, "Fortune decision"):
+            lp.goto_passage(loaded, "S02", self.fixed_clock)
+
+    def test_finished_sessions_reject_observer_operations(self) -> None:
+        loaded = self.start()
+        loaded.state["status"] = "finished"
+
+        with self.assertRaisesRegex(lp.HarnessError, "cannot show passage"):
+            lp.show_current_passage(loaded, self.fixed_clock)
+        with self.assertRaisesRegex(lp.HarnessError, "cannot record note"):
+            lp.record_note(loaded, "player", "No more", self.fixed_clock)
+        with self.assertRaisesRegex(lp.HarnessError, "cannot look up rules"):
+            lp.record_rules_lookup(loaded, "Fortune", self.fixed_clock)
+        with self.assertRaisesRegex(lp.HarnessError, "cannot record choice"):
+            lp.record_choice(loaded, "Go on", None, "S02", self.fixed_clock)
+        with self.assertRaisesRegex(lp.HarnessError, "cannot transition"):
+            lp.goto_passage(loaded, "S02", self.fixed_clock)

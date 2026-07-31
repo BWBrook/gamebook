@@ -576,6 +576,210 @@ def append_event(
     return copy.deepcopy(event)
 
 
+def _require_active(loaded: LoadedSession, operation: str) -> None:
+    status = loaded.state["status"]
+    if status != "active":
+        raise HarnessError(
+            f"cannot {operation} while session status is {status}"
+        )
+
+
+def _reader_path(loaded: LoadedSession, label: str) -> Path:
+    return Path(loaded.document["reader_files"][label]["path"])
+
+
+def show_current_passage(
+    loaded: LoadedSession,
+    clock: Clock = utc_now,
+) -> str:
+    _require_active(loaded, "show passage")
+    passage = loaded.state["current_passage"]
+    passages = index_passages(_reader_path(loaded, "story"))
+    try:
+        shown = passages[passage]
+    except KeyError as error:
+        raise HarnessError(f"undefined passage {passage}") from error
+    append_event(
+        loaded,
+        "passage_shown",
+        {},
+        loaded.state,
+        loaded.workflow,
+        clock,
+    )
+    return shown
+
+
+def format_state(state: JSONDict) -> str:
+    attributes = " | ".join(
+        f"{name} {value}"
+        for name, value in sorted(state["attributes"].items())
+    )
+    resources = [
+        f"{name}: {values['current']}/{values['maximum']}"
+        for name, values in sorted(state["resources"].items())
+    ]
+    pressure = state["pressure"]
+    possessions = " | ".join(state["possessions"]) or "—"
+    story_marks = " | ".join(state["story_marks"]) or "—"
+    return "\n".join(
+        [
+            f"Passage: {state['current_passage']}",
+            f"Status: {state['status']}",
+            f"Attributes: {attributes}",
+            *resources,
+            (
+                f"{pressure['name']}: {pressure['current']}/"
+                f"{pressure['maximum']}"
+            ),
+            f"Possessions: {possessions}",
+            f"Story marks: {story_marks}",
+        ]
+    )
+
+
+def record_note(
+    loaded: LoadedSession,
+    kind: str,
+    text: str,
+    clock: Clock = utc_now,
+) -> JSONDict:
+    _require_active(loaded, "record note")
+    event_types = {
+        "player": "player_note",
+        "operator": "operator_note",
+        "rules-question": "rules_question",
+    }
+    if kind not in event_types:
+        raise HarnessError(f"unknown note kind {kind!r}")
+    if not isinstance(text, str) or not text.strip():
+        raise HarnessError("note text must be non-empty")
+    return append_event(
+        loaded,
+        event_types[kind],
+        {"kind": kind, "text": text},
+        loaded.state,
+        loaded.workflow,
+        clock,
+    )
+
+
+def record_rules_lookup(
+    loaded: LoadedSession,
+    section: str,
+    clock: Clock = utc_now,
+) -> str:
+    _require_active(loaded, "look up rules")
+    if not isinstance(section, str):
+        raise HarnessError(f"unknown rules heading {section!r}")
+    sections = index_rule_sections(_reader_path(loaded, "rules"))
+    try:
+        found = sections[section.casefold()]
+    except KeyError as error:
+        raise HarnessError(f"unknown rules heading {section!r}") from error
+    match = H2_HEADING.fullmatch(found.splitlines()[0])
+    if match is None:
+        raise HarnessError("internal rules lookup error")
+    canonical_heading = match.group("title")
+    digest = hashlib.sha256(found.encode("utf-8")).hexdigest()
+    append_event(
+        loaded,
+        "rules_lookup",
+        {"section": canonical_heading, "sha256": digest},
+        loaded.state,
+        loaded.workflow,
+        clock,
+    )
+    return found
+
+
+def record_choice(
+    loaded: LoadedSession,
+    text: str,
+    method: str | None,
+    intended_destination: str | None,
+    clock: Clock = utc_now,
+) -> JSONDict:
+    _require_active(loaded, "record choice")
+    if not isinstance(text, str) or not text.strip():
+        raise HarnessError("choice text must be non-empty")
+    if loaded.workflow["choice"] is not None:
+        raise HarnessError("cannot record a second unresolved choice")
+    if (
+        intended_destination is not None
+        and (
+            not isinstance(intended_destination, str)
+            or re.fullmatch(r"[SE]\d{2}", intended_destination) is None
+        )
+    ):
+        raise HarnessError("intended destination must match [SE]\\d{2}")
+
+    choice_event = loaded.document["last_event"] + 1
+    workflow = copy.deepcopy(loaded.workflow)
+    workflow["choice"] = {
+        "text": text,
+        "method": method,
+        "destination": intended_destination,
+        "event": choice_event,
+    }
+    return append_event(
+        loaded,
+        "choice_committed",
+        {
+            "text": text,
+            "method": method,
+            "destination": intended_destination,
+        },
+        loaded.state,
+        workflow,
+        clock,
+    )
+
+
+def goto_passage(
+    loaded: LoadedSession,
+    destination: str,
+    clock: Clock = utc_now,
+) -> JSONDict:
+    _require_active(loaded, "transition")
+    choice = loaded.workflow["choice"]
+    if not isinstance(choice, dict):
+        raise HarnessError("cannot transition without a committed choice")
+    roll = loaded.workflow["roll"]
+    if isinstance(roll, dict) and roll.get("fortune_status") == "pending":
+        raise HarnessError("cannot transition before the Fortune decision")
+
+    passages = index_passages(_reader_path(loaded, "story"))
+    if not isinstance(destination, str) or destination not in passages:
+        raise HarnessError(f"undefined passage {destination}")
+    current = loaded.state["current_passage"]
+    if re.search(
+        rf"(?<![A-Za-z0-9_]){re.escape(destination)}(?![A-Za-z0-9_])",
+        passages[current],
+    ) is None:
+        raise HarnessError(
+            f"destination {destination} is not referenced in passage {current}"
+        )
+    intended_destination = choice.get("destination")
+    if intended_destination is not None and intended_destination != destination:
+        raise HarnessError(
+            f"destination {destination} does not match committed choice "
+            f"destination {intended_destination}"
+        )
+
+    state = copy.deepcopy(loaded.state)
+    state["current_passage"] = destination
+    choice_event = choice.get("event")
+    return append_event(
+        loaded,
+        "passage_transition",
+        {"from": current, "to": destination, "choice_event": choice_event},
+        state,
+        {"choice": None, "roll": None},
+        clock,
+    )
+
+
 def recover_cache(
     sessions_dir: Path,
     session_id: str,
