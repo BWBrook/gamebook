@@ -11,6 +11,9 @@
 .idea/
 .vscode/
 
+# Local Git worktrees
+.worktrees/
+
 # Temporary files
 *.tmp
 *.temp
