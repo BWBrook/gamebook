@@ -905,7 +905,9 @@ class ReportTests(HarnessTestCase):
         first = lp.render_report(loaded.document, loaded.events)
         second = lp.render_report(loaded.document, loaded.events)
         self.assertEqual(first, second)
-        for heading in (
+        self.assertEqual(
+            [line for line in first.splitlines() if line.startswith("#")],
+            [
             "# Live Playtest Report",
             "## Session",
             "## Route",
@@ -918,23 +920,85 @@ class ReportTests(HarnessTestCase):
             "## Timing",
             "## Final state",
             "## Limitations",
-        ):
-            self.assertIn(heading, first)
-        self.assertIn("raw audio was not retained", first)
-        self.assertIn("not a blind or controlled experiment", first)
+            ],
+        )
+        self.assertIn("| ID | report-session |", first)
+        self.assertIn("| Purpose | Natural calibration playthrough |", first)
+        self.assertIn("| Dice mode | physical |", first)
+        self.assertIn("| Observer mode | neutral |", first)
+        for label in ("story", "rules", "sheet"):
+            reader = loaded.document["reader_files"][label]
+            self.assertIn(reader["path"], first)
+            self.assertIn(reader["sha256"], first)
         self.assertIn("Guard's spear", first)
         self.assertIn("consum", first.casefold())
         self.assertIn("I hear a \\| pause<br>and want to press on.", first)
+        self.assertIn("Observed ambiguity: which door?", first)
+        self.assertIn("Can Fortune help?", first)
+        self.assertIn(loaded.events[4]["data"]["sha256"], first)
         self.assertIn(
             "| 6 | Press onward | spoken choice | S02 | CUN | standard | 15 |",
             first,
         )
         self.assertIn("| decided | 3 | 12 | 0 | yes |", first)
+        self.assertIn("Taken from guard", first)
+        self.assertIn("Possessions: Sword \\| Guard's spear", first)
+        self.assertIn("The player clarified the pause.", first)
+        self.assertIn("recorded corrected wording", first)
+        self.assertIn("| 13 | 2026-07-31T10:00:00Z | pause |", first)
+        self.assertIn("| 14 | 2026-07-31T10:00:00Z | resume |", first)
         self.assertIn("Interaction interval", first)
+        self.assertIn("Passage: S02", first)
+        self.assertIn("Status: finished", first)
+        self.assertIn("Outcome: S02 — passage completed", first)
+        for limitation in (
+            "raw audio was not retained",
+            "Voice-derived text is stored as received",
+            "Codex was not blind to unread material",
+            "not a blind or controlled experiment",
+            "Timing includes network, tool, and transcription delay",
+            "One player cannot establish general behaviour",
+        ):
+            self.assertIn(limitation, first)
 
         report_path = lp.write_report(loaded)
         first_bytes = report_path.read_bytes()
         report_path = lp.write_report(loaded)
         self.assertEqual(report_path.read_bytes(), first_bytes)
+        self.assertNotIn(b"\r", first_bytes)
         self.assertEqual((loaded.directory / "events.jsonl").read_bytes(), event_bytes)
         self.assertEqual((loaded.directory / "session.json").read_bytes(), cache_bytes)
+
+    def test_report_normalizes_finish_outcome_to_lf(self) -> None:
+        loaded = self.start("crlf-outcome")
+        lp.finish_session(loaded, "first line\r\nsecond line", self.fixed_clock)
+
+        report_path = lp.write_report(loaded)
+
+        report_bytes = report_path.read_bytes()
+        self.assertNotIn(b"\r", report_bytes)
+        self.assertIn(b"Outcome: first line\nsecond line", report_bytes)
+
+    def test_report_marks_two_die_natural_margin_as_resolution_inert(self) -> None:
+        loaded = self.start("natural-report")
+        lp.show_current_passage(loaded, self.fixed_clock)
+        lp.record_choice(loaded, "Press onward", "spoken choice", "S02", self.fixed_clock)
+        lp.record_roll(loaded, "BRN", "disadvantage", [1, 20], self.fixed_clock)
+        lp.goto_passage(loaded, "S02", self.fixed_clock)
+        report = lp.render_report(loaded.document, loaded.events)
+
+        self.assertIn("Margin resolution-inert", report)
+        self.assertIn(
+            "| 3 | Press onward | spoken choice | S02 | BRN | disadvantage | 1, 20 | 1 | 20 | 13 | -7 | 20 | yes | forbidden | 0 | 20 | -7 | no |",
+            report,
+        )
+
+    def test_unfinished_report_marks_empty_sections_and_final_state(self) -> None:
+        loaded = self.start("unfinished-report")
+
+        report = lp.render_report(loaded.document, loaded.events)
+
+        self.assertGreaterEqual(report.count("None recorded."), 7)
+        self.assertIn("Session unfinished", report)
+        self.assertIn("Passage: S01", report)
+        self.assertIn("Status: active", report)

@@ -1490,6 +1490,7 @@ def render_report(document: JSONDict, events: Sequence[JSONDict]) -> str:
                 roll.get("target"),
                 roll.get("provisional_margin"),
                 roll.get("natural"),
+                roll.get("margin_is_resolution_inert"),
                 roll.get("fortune_status"),
                 roll.get("fortune_spent"),
                 roll.get("final_die"),
@@ -1512,6 +1513,7 @@ def render_report(document: JSONDict, events: Sequence[JSONDict]) -> str:
                 "Target",
                 "Provisional margin",
                 "Natural",
+                "Margin resolution-inert",
                 "Fortune decision",
                 "Fortune spent",
                 "Final die",
@@ -1609,7 +1611,7 @@ def render_report(document: JSONDict, events: Sequence[JSONDict]) -> str:
             "",
         ]
     )
-    return "\n".join(lines)
+    return "\n".join(lines).replace("\r\n", "\n").replace("\r", "\n")
 
 
 def write_report(loaded: LoadedSession) -> Path:
