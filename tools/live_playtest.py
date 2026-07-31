@@ -461,21 +461,44 @@ def _read_json_document(path: Path) -> JSONDict:
     return payload
 
 
-def _verify_reader_hashes(document: JSONDict) -> None:
-    reader_files = document.get("reader_files")
+def _verify_start_metadata(document: JSONDict, events: Sequence[JSONDict]) -> JSONDict:
+    start_event = events[0]
+    data = start_event.get("data")
+    if not isinstance(data, dict):
+        raise HarnessError("event 1 has invalid session-start metadata")
+    for field in (
+        "purpose",
+        "hypothesis",
+        "reader_files",
+        "dice_mode",
+        "observer_mode",
+    ):
+        if field not in data or document.get(field) != data[field]:
+            raise HarnessError(
+                "session cache differs from authoritative session-start metadata"
+            )
+    start_state = start_event["after"]["state"]
+    if document.get("initial_state") != start_state:
+        raise HarnessError(
+            "session cache differs from authoritative session-start metadata"
+        )
+    return data
+
+
+def _verify_reader_hashes(reader_files: JSONDict) -> None:
     if not isinstance(reader_files, dict) or set(reader_files) != {"story", "rules", "sheet"}:
-        raise HarnessError("session cache has invalid reader files")
+        raise HarnessError("session-start metadata has invalid reader files")
     for label in ("story", "rules", "sheet"):
         record = reader_files[label]
         if not isinstance(record, dict) or set(record) != {"path", "sha256"}:
-            raise HarnessError(f"session cache has invalid {label} reader record")
+            raise HarnessError(f"session-start metadata has invalid {label} reader record")
         stored_path = record["path"]
         stored_hash = record["sha256"]
         if not isinstance(stored_path, str) or not isinstance(stored_hash, str):
-            raise HarnessError(f"session cache has invalid {label} reader record")
+            raise HarnessError(f"session-start metadata has invalid {label} reader record")
         path = Path(stored_path)
         if not path.is_absolute():
-            raise HarnessError(f"session cache has non-absolute {label} reader path")
+            raise HarnessError(f"session-start metadata has non-absolute {label} reader path")
         if sha256_file(path) != stored_hash:
             raise HarnessError(f"reader file changed: {label}")
 
@@ -494,10 +517,11 @@ def load_session(
         raise HarnessError("unsupported session format version")
     if document.get("harness_version") != HARNESS_VERSION:
         raise HarnessError("unsupported harness version")
-    if verify_hashes:
-        _verify_reader_hashes(document)
     events = read_events(directory / "events.jsonl")
     snapshot = replay_events(events)
+    start_metadata = _verify_start_metadata(document, events)
+    if verify_hashes:
+        _verify_reader_hashes(start_metadata["reader_files"])
     if verify_cache and (
         document.get("current_state") != snapshot["state"]
         or document.get("workflow") != snapshot["workflow"]

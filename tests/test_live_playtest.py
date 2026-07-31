@@ -153,6 +153,44 @@ class PersistenceTests(HarnessTestCase):
         with self.assertRaisesRegex(lp.HarnessError, "reader file changed"):
             lp.load_session(self.root / "sessions", "test-session")
 
+    def test_cache_cannot_replace_authoritative_start_metadata(self) -> None:
+        loaded = self.start()
+        document_path = loaded.directory / "session.json"
+        original_document = json.loads(document_path.read_text(encoding="utf-8"))
+        original_story = self.story.read_text(encoding="utf-8")
+
+        self.story.write_text("## S01 — Changed\n\nChanged.\n", encoding="utf-8")
+        tampered_document = json.loads(json.dumps(original_document))
+        tampered_document["reader_files"]["story"]["sha256"] = lp.sha256_file(
+            self.story
+        )
+        document_path.write_text(json.dumps(tampered_document), encoding="utf-8")
+        with self.assertRaisesRegex(
+            lp.HarnessError,
+            "authoritative session-start metadata",
+        ):
+            lp.load_session(self.root / "sessions", "test-session")
+
+        self.story.write_text(original_story, encoding="utf-8")
+        tampered_initial_state = json.loads(json.dumps(self.initial_state()))
+        tampered_initial_state["attributes"]["BRN"] = 1
+        for field, value in (
+            ("purpose", "Tampered purpose"),
+            ("hypothesis", "Tampered hypothesis"),
+            ("dice_mode", "digital"),
+            ("observer_mode", "advisory"),
+            ("initial_state", tampered_initial_state),
+        ):
+            with self.subTest(field=field):
+                document = json.loads(json.dumps(original_document))
+                document[field] = value
+                document_path.write_text(json.dumps(document), encoding="utf-8")
+                with self.assertRaisesRegex(
+                    lp.HarnessError,
+                    "authoritative session-start metadata",
+                ):
+                    lp.load_session(self.root / "sessions", "test-session")
+
     def test_stale_cache_requires_explicit_recovery(self) -> None:
         loaded = self.start()
         document_path = loaded.directory / "session.json"
