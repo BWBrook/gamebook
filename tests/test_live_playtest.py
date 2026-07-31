@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shlex
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -1194,6 +1195,34 @@ class CliTests(HarnessTestCase):
             "--clear-workflow",
         ):
             self.assertIn(correction_option, option_strings)
+
+    def test_documented_annotate_correction_example_runs(self) -> None:
+        documentation = (
+            Path(__file__).resolve().parents[1]
+            / "docs/playtesting/live-playtest.md"
+        ).read_text(encoding="utf-8")
+        example = next(
+            line for line in documentation.splitlines()
+            if line.startswith("python3 tools/live_playtest.py correct ")
+        )
+        command = shlex.split(example)
+        substitutions = {
+            "SESSION_ID": "documented-correction",
+            "INTEGER": "1",
+            "TEXT": "Documented-correction",
+        }
+        arguments = [substitutions.get(value, value) for value in command[2:]]
+
+        status, _, stderr = self.command(
+            *self.start_arguments("documented-correction")
+        )
+        self.assertEqual(status, 0, stderr)
+
+        status, stdout, stderr = self.command(*self.session_arguments(*arguments))
+
+        self.assertEqual(status, 0, stderr)
+        self.assertEqual(stderr, "")
+        self.assertEqual(json.loads(stdout)["event"]["data"]["operation"], "annotate")
 
     def test_start_show_and_state_create_and_read_the_session(self) -> None:
         status, stdout, stderr = self.command(*self.start_arguments())

@@ -84,7 +84,7 @@ python3 tools/live_playtest.py apply pressure SESSION_ID --delta INTEGER --reaso
 python3 tools/live_playtest.py apply possession SESSION_ID add|consume|remove NAME --reason TEXT
 python3 tools/live_playtest.py apply mark SESSION_ID add|consume|remove NAME --reason TEXT
 python3 tools/live_playtest.py goto SESSION_ID PASSAGE_ID
-python3 tools/live_playtest.py correct SESSION_ID --target-event INTEGER --reason TEXT CORRECTION
+python3 tools/live_playtest.py correct SESSION_ID --target-event INTEGER --reason TEXT --annotate TEXT
 python3 tools/live_playtest.py recover-cache SESSION_ID
 python3 tools/live_playtest.py pause SESSION_ID --reason TEXT
 python3 tools/live_playtest.py resume SESSION_ID
