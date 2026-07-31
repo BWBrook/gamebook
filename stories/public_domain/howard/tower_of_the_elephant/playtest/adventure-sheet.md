@@ -29,6 +29,6 @@ Circle the current value. Begin at **0**.
 - ________________________________________
 - ________________________________________
 
-Cross off one box whenever Fortune is spent or Stamina is lost. Cross off a
+Cross off one box for each point of Fortune spent or Stamina lost. Cross off a
 possession or story mark when a passage says it is consumed. Mark the new
 Exposure value whenever it changes. Nothing recovers within this slice.
