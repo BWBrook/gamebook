@@ -14,6 +14,9 @@
 # Local Git worktrees
 .worktrees/
 
+# Local playtest sessions
+.playtest/
+
 # Temporary files
 *.tmp
 *.temp
