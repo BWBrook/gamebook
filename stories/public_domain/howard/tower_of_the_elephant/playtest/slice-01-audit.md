@@ -218,7 +218,7 @@ clean route.
 | `S08` | Cross with Taurus. | — | None; `10/6/0`, Sword | `S09` |
 | `S09` | Trust Taurus. | — | None; `10/6/0`, Sword | `S10` |
 | `S10` | Wait for the cloud and advance. | — | No recovery; `10/6/0`, Sword | `S11` |
-| `S11` | Wheel beneath the leap with the Sword; test BRN 13. | Raw 1; selected natural 1; margin not computed because the locked result resolves first; spend 0 Fortune | Exceptional clean kill with no cost; `10/6/0`, Sword | `S12` |
+| `S11` | Wheel beneath the leap with the Sword; test BRN 13. | Raw 1; selected natural 1; arithmetic margin `13 - 1 = +12`, resolution-inert because the natural 1 is locked; spend 0 Fortune | Exceptional clean kill with no cost; `10/6/0`, Sword | `S12` |
 | `S12` | Follow the exceptional kill prose and continue. | — | None; `10/6/0`, Sword | `S14` |
 | `S14` | Stop at the successful slice boundary. | — | Recover nothing; final `F/S/X 10/6/0`, Sword | Slice complete |
 
@@ -241,7 +241,7 @@ selected natural 20.
 | `S08` | Cross with Taurus. | — | None; `10/6/0`, Sword | `S09` |
 | `S09` | Trust Taurus. | — | None; `10/6/0`, Sword | `S10` |
 | `S10` | Wait for the cloud and advance. | — | No recovery; `10/6/0`, Sword | `S11` |
-| `S11` | Wheel beneath the leap with the Sword; test BRN 13. | Raw 20; selected natural 20; margin not computed because the locked result resolves first; Fortune is forbidden and spend is 0 | Direct fatal result; no Stamina arithmetic or rescue; `10/6/0` at death | `E03` |
+| `S11` | Wheel beneath the leap with the Sword; test BRN 13. | Raw 20; selected natural 20; arithmetic margin `13 - 20 = -7`, resolution-inert because the natural 20 is locked; Fortune is forbidden and spend is 0 | Direct fatal result; no Stamina arithmetic or rescue; `10/6/0` at death | `E03` |
 | `E03` | Stop at the death ending. | — | Conan is dead; no recovery or continuation | Terminal |
 
 Outcome: the locked natural 20 cannot be changed with Fortune and terminates
