@@ -128,61 +128,105 @@ escape, continuation, or alternate ending.
 
 ### Conan
 
-You play the young, already seasoned Conan. His profile is fixed:
+You play the young but already seasoned Conan. His profile is fixed:
 
 `BRN 13 | AGI 12 | CUN 12 | WIL 12 | FOR 10/10 | STM 6/6`
 
-Begin with Fortune 10, Stamina 6, Exposure 0, and the Sword listed on the
-adventure sheet. Fortune never rises above 10 and Stamina never rises above 6.
-No Fortune or Stamina recovery occurs within this slice.
+Brawn (BRN) covers force and endurance; Agility (AGI) covers speed and
+physical precision; Cunning (CUN) covers observation, stealth, and guile; and
+Will (WIL) covers courage and self-command. Begin with Fortune 10, Stamina 6,
+Exposure 0, and the Sword. You have no starting story marks.
 
-### Stamina
-
-In this slice, an ordinary injury costs 1 Stamina and a serious injury costs 2
-when the passage prints that loss. If an authored damaging result reduces
-Conan to 0 Stamina, go immediately to `E03`; Conan dies. There is no rescue
-roll or automatic rebound. A clearly stated mortal hazard can also send Conan
-straight to the death ending.
+These values are Conan's starting state for this playtest, so record them
+before beginning at the first passage.
 
 ### Exposure
 
-Exposure measures evidence, delay, and disturbance that make the intrusion
-more likely to be discovered. It starts at 0, is visible, and is capped at 5.
-Apply each printed increase before continuing.
+Exposure tracks evidence, delay, and disturbance that make the intrusion more
+likely to be discovered. It starts at 0 and is capped at 5. Apply every
+printed increase immediately.
 
 | Exposure | State and effect |
 | ---: | --- |
-| 0-2 | The intruders remain unconfirmed. All listed choices remain available. |
-| 3 | The watch has reason for unease. Passages acknowledge movement or attention below, and lingering choices close. |
-| 4 | A search is beginning. Only immediate advance or withdrawal choices remain legal. |
-| 5 | The breach is discovered. Resolve the contextual `E02` crisis and do not reduce Exposure to preserve the route. |
+| 0–2 | Unconfirmed: all listed choices remain available. |
+| 3 | Uneasy: the watch has reason for unease, and lingering choices close. |
+| 4 | Search: immediate advance or withdrawal are the only legal choices. |
+| 5 | Discovered: resolve `E02`. |
 
-Exposure increases only when the adventure prints one of these events:
+The only printed increases are another patrol interval (+1); a loud or
+avoidable disturbance (+1); a failed Taurus standoff (+1); a natural 20 in
+that standoff (+2); and the amount printed by a lion tactic. No ordinary event
+lowers Exposure. For example, at 2 → 3, mark 3: the watch becomes uneasy and
+lingering choices begin to close.
 
-- add 1 when Conan deliberately waits through another patrol interval;
-- add 1 when he calls loudly or creates an avoidable disturbance;
-- add 1 for an ordinary failed standoff with Taurus;
-- add 2 for a natural 20 during that standoff; or
-- add the amount printed by the selected lion tactic on a costly result.
+### Injury, Recovery, and Death
 
-No ordinary event lowers Exposure in this slice. If an update reaches 5, go to
-the contextual `E02` ending instead of continuing along the former route.
+An authored injury costs 1 or 2 Stamina exactly as the passage prints. A
+clearly stated mortal hazard can send Conan directly to a death ending. If a
+result reduces Stamina to 0, go immediately to `E03`. Fortune has a maximum
+of 10, Stamina a maximum of 6, and Exposure a maximum of 5. No Fortune,
+Stamina, or Exposure recovers in this slice. Mark every loss when it happens.
 
-### Tactical Exchanges
+### Tactical Exchanges and Crises
 
-During the silent-lion exchange, read the fatal stake first, choose among the
-methods currently available, make the stated test, apply Fortune only to an
-ordinary selected die, and resolve every printed cost before leaving the
-passage.
+Tactical exchanges are authored choices with stated stakes and consequences,
+not repeated combat rounds. Read every available method before choosing. A
+possession is consumed when its method says to cross it off, and other sheet
+updates happen when printed. After a result, apply printed costs; resolve
+Stamina 0 or Exposure 5; then follow a surviving destination.
 
-### Endings
+Do not invent an extra attack, defence, or escape once the passage has given
+its result.
 
-Terminal passages end this playtest route explicitly. `E01` means Conan
-withdraws alive and abandons the theft. `E02` means the watch discovers the
-breach at Exposure 5. `E03` means Conan dies. `S14` is the successful end of
-this infiltration slice, with Taurus's rope ready for the ascent; it is not
-the end of the full story.
+### Hints for Play
 
-When you reach any of these terminals, stop. Do not seek an unprinted rescue,
-recovery, or continuation. No recovery of Fortune, Stamina, or Exposure occurs
-within this slice.
+Read every method and stake before deciding. Mark the current passage, check
+each condition, and update the Adventure Sheet immediately. Trust explicit
+terminals when you reach them. Keep the sheet visible whenever a choice names
+a resource, possession, or story mark.
+
+### Rumours of the Tower
+
+Beyond the temple-quarter shadows rise Yara's outer wall, a second barrier,
+and a smooth silver tower whose jewel-crusted rim catches starlight. The Heart
+of the Elephant is said to sustain Yara's long life, and stories of his strange
+power have unsettled bolder thieves than Conan. The rumours promise danger,
+wealth, and little certainty.
+
+## Rules at a Glance
+
+### Core Action Flow
+
+1. Read the stakes.
+2. Choose a method.
+3. Capture the target.
+4. Roll and select the die.
+5. Check natural 1 or natural 20.
+6. Compute target - selected die.
+7. Spend Fortune if allowed.
+8. Apply the printed result.
+9. Update the sheet before turning to the destination.
+
+Advantage: roll two d20s and keep the lower selected die.
+Disadvantage: roll two d20s and keep the higher selected die.
+
+An ordinary final die equal to or below its captured target succeeds; use the
+margin only when the passage asks for it.
+
+Select a die before checking a natural or calculating margin. A locked natural
+has a margin, yet passages never resolve it by the margin.
+
+### Tower Reminders
+
+Spend Fortune only after an ordinary selected die and before resolving it;
+each point lowers that die by one, up to the Fortune remaining. Natural 1 and
+natural 20 are locked. A Fortune test captures current Fortune as its target;
+spending afterward cannot change that target.
+
+At 0 Stamina, go immediately to `E03`. Exposure starts at 0: 3 closes
+lingering choices, 4 permits only immediate advance or withdrawal, and 5
+resolves `E02`. Record possessions and story marks as passages award them;
+cross either off only when instructed. In a tactical exchange, choose an
+available method and apply its printed cost. Always resolve Stamina 0 or
+Exposure 5 before following a surviving destination. Fortune, Stamina, and
+Exposure do not recover in this slice. Stop at an explicit terminal.
