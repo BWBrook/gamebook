@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -40,6 +41,32 @@ class HarnessTestCase(unittest.TestCase):
         )
         self.sheet.write_text("# Sheet\n", encoding="utf-8")
 
+    def fixed_clock(self) -> str:
+        return "2026-07-31T10:00:00Z"
+
+    def initial_state(self) -> dict[str, object]:
+        return lp.build_initial_state(
+            attributes={"BRN": 13, "AGI": 12, "CUN": 12, "WIL": 12},
+            resources={"Fortune": (10, 10), "Stamina": (6, 6)},
+            pressure=("Exposure", 0, 5),
+            possessions=["Sword"],
+            story_marks=[],
+            start_passage="S01",
+        )
+
+    def start(self, session_id: str = "test-session") -> lp.LoadedSession:
+        return lp.start_session(
+            self.root / "sessions",
+            session_id,
+            self.story,
+            self.rules,
+            self.sheet,
+            "Natural calibration playthrough",
+            None,
+            self.initial_state(),
+            self.fixed_clock,
+        )
+
     def tearDown(self) -> None:
         self.temporary_directory.cleanup()
 
@@ -79,3 +106,79 @@ class MarkdownIndexTests(HarnessTestCase):
             lp.parse_named_integer("BRN")
         with self.assertRaisesRegex(lp.HarnessError, "CURRENT/MAXIMUM"):
             lp.parse_named_bound("Fortune=10")
+
+
+class PersistenceTests(HarnessTestCase):
+    def test_start_writes_one_authoritative_event_and_cache(self) -> None:
+        loaded = self.start()
+        self.assertEqual(loaded.document["format_version"], 1)
+        self.assertEqual(loaded.document["dice_mode"], "physical")
+        self.assertEqual(loaded.document["observer_mode"], "neutral")
+        self.assertEqual(loaded.document["last_event"], 1)
+        self.assertEqual(loaded.events[0]["type"], "session_started")
+        self.assertIsNone(loaded.events[0]["before"])
+        self.assertEqual(
+            loaded.events[0]["after"]["state"]["current_passage"],
+            "S01",
+        )
+        self.assertEqual(
+            lp.replay_events(loaded.events),
+            loaded.events[-1]["after"],
+        )
+
+    def test_duplicate_session_identifier_is_rejected(self) -> None:
+        self.start()
+        with self.assertRaisesRegex(lp.HarnessError, "already exists"):
+            self.start()
+
+    def test_missing_start_passage_is_rejected(self) -> None:
+        state = self.initial_state()
+        state["current_passage"] = "S99"
+        with self.assertRaisesRegex(lp.HarnessError, "undefined start passage S99"):
+            lp.start_session(
+                self.root / "sessions",
+                "missing-passage",
+                self.story,
+                self.rules,
+                self.sheet,
+                "Missing-passage check",
+                None,
+                state,
+                self.fixed_clock,
+            )
+
+    def test_reader_hash_drift_stops_loading(self) -> None:
+        self.start()
+        self.story.write_text("## S01 — Changed\n\nChanged.\n", encoding="utf-8")
+        with self.assertRaisesRegex(lp.HarnessError, "reader file changed"):
+            lp.load_session(self.root / "sessions", "test-session")
+
+    def test_stale_cache_requires_explicit_recovery(self) -> None:
+        loaded = self.start()
+        document_path = loaded.directory / "session.json"
+        document = json.loads(document_path.read_text(encoding="utf-8"))
+        document["last_event"] = 0
+        document_path.write_text(json.dumps(document), encoding="utf-8")
+        with self.assertRaisesRegex(lp.HarnessError, "recover-cache"):
+            lp.load_session(self.root / "sessions", "test-session")
+
+        recovered = lp.recover_cache(
+            self.root / "sessions",
+            "test-session",
+            self.fixed_clock,
+        )
+        self.assertEqual(recovered.document["last_event"], 1)
+        self.assertEqual(recovered.state, self.initial_state())
+
+    def test_broken_event_chain_cannot_be_recovered(self) -> None:
+        loaded = self.start()
+        event_path = loaded.directory / "events.jsonl"
+        event = json.loads(event_path.read_text(encoding="utf-8"))
+        event["number"] = 2
+        event_path.write_text(json.dumps(event) + "\n", encoding="utf-8")
+        with self.assertRaisesRegex(lp.HarnessError, "event number"):
+            lp.recover_cache(
+                self.root / "sessions",
+                "test-session",
+                self.fixed_clock,
+            )
