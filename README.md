@@ -9,8 +9,14 @@ public-domain fiction into gamebooks, while also supporting original stories.
 
 ## Status
 
-The repository is being established. The rules, implementation infrastructure,
-and story-file formats have not yet been designed.
+The approved
+[Authored S&S solo core](docs/superpowers/specs/2026-07-30-authored-sinew-steel-solo-core-design.md)
+now has a
+[*Tower of the Elephant* adaptation map](stories/public_domain/howard/tower_of_the_elephant/adaptation/map.md)
+and a
+[paper-playable outer-wall slice](stories/public_domain/howard/tower_of_the_elephant/playtest/slice-01.md).
+The passage schema, deterministic tooling, and AI facilitation remain later
+increments.
 
 ## Background research
 
@@ -25,5 +31,5 @@ and story-file formats have not yet been designed.
   playtest.
 - `stories/original/` — reserved for possible original works.
 
-Source acquisition and conversion will be handled separately. Provenance and
-the applicable rights basis will be recorded before source text is added.
+The Tower workspace records source provenance, conversion, and the applicable
+rights basis alongside its adaptation work.

@@ -73,8 +73,21 @@ as a renewal of this story.
 
 All online records above were accessed on 20 July 2026.
 
-## Scope
+## Adaptation work
 
-`source.md` is the reference text for later analysis and adaptation. It is not
-yet divided into gamebook passages and contains no rules, annotations, or
-adapted prose.
+- [`adaptation/map.md`](adaptation/map.md) maps the complete source into
+  invariants, decision seams, elastic intervals, and counterfactual boundaries.
+- [`adaptation/story-profile.md`](adaptation/story-profile.md) fixes Conan's
+  profile, Exposure, sparse state, and the first passage graph.
+- [`playtest/quick-rules.md`](playtest/quick-rules.md) contains the reader-facing
+  rules for the representative slice.
+- [`playtest/adventure-sheet.md`](playtest/adventure-sheet.md) is the paper
+  record sheet.
+- [`playtest/slice-01.md`](playtest/slice-01.md) is the playable outer-wall and
+  garden slice.
+- [`playtest/slice-01-audit.md`](playtest/slice-01-audit.md) records source and
+  state coverage, deterministic route rehearsals, and the reader-only procedure
+  run.
+
+The slice is a development playtest through the secured-rope boundary at source
+line 188. It is not a complete adaptation of *The Tower of the Elephant*.

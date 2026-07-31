@@ -55,9 +55,11 @@ A branch shifts near the inner wall. You catch the suggestion of a heavy shape
 moving behind the leaves.
 
 - Follow the movement at once, before its maker escapes or takes a stronger
-  position. Turn to **S05**.
+  position. You leave the corpse unread and its spear where it lies. Turn to
+  **S05**.
 
-- Spend time on one close examination of the corpse. Turn to **S04**.
+- Spend time on one close examination of the corpse and take one useful
+  discovery. Turn to **S04**.
 
 ## S04 — One Discovery
 
@@ -71,7 +73,8 @@ the dead man, no more. Choose exactly one discovery; do not record both.
 - Leave the spear and read the corpse instead. The throat bears the bruising
   of powerful hands, and the position of the body shows a swift attack from
   behind rather than sorcery. Add **Read the strangling** to your Story marks.
-  Turn to **S05**.
+  This mark lets you identify a human ambusher quietly when you confront the
+  mover. Turn to **S05**.
 
 ## S05 — A Thief in the Shrubs
 
