@@ -271,6 +271,8 @@ def build_initial_state(
         or not 0 <= pressure_current <= pressure_maximum
     ):
         raise HarnessError("pressure must satisfy 0 <= current <= maximum")
+    if pressure_name.strip() != "Exposure" or pressure_maximum != 5:
+        raise HarnessError("pressure must be Exposure on the exact 0/5 track")
 
     if not isinstance(start_passage, str) or re.fullmatch(r"[SE]\d{2}", start_passage) is None:
         raise HarnessError("start passage must match [SE]\\d{2}")
@@ -555,6 +557,21 @@ def _verify_start_metadata(document: JSONDict, events: Sequence[JSONDict]) -> JS
     return data
 
 
+def _verify_identity_metadata(
+    document: JSONDict,
+    events: Sequence[JSONDict],
+    session_id: str,
+) -> None:
+    if (
+        document.get("session_id") != session_id
+        or not events
+        or document.get("created_at") != events[0].get("timestamp")
+    ):
+        raise HarnessError(
+            "session cache differs from authoritative identity metadata"
+        )
+
+
 def _verify_reader_hashes(reader_files: JSONDict) -> None:
     if not isinstance(reader_files, dict) or set(reader_files) != {"story", "rules", "sheet"}:
         raise HarnessError("session-start metadata has invalid reader files")
@@ -592,6 +609,8 @@ def load_session(
     start_metadata = _verify_start_metadata(document, events)
     if verify_hashes:
         _verify_reader_hashes(start_metadata["reader_files"])
+    if verify_cache:
+        _verify_identity_metadata(document, events, session_id)
     if verify_cache and (
         document.get("current_state") != snapshot["state"]
         or document.get("workflow") != snapshot["workflow"]
@@ -636,6 +655,9 @@ def append_event(
     document["workflow"] = copy.deepcopy(after["workflow"])
     document["last_event"] = number
     document["updated_at"] = timestamp
+    authoritative_events = read_events(loaded.directory / "events.jsonl")
+    start_metadata = _verify_start_metadata(loaded.document, authoritative_events)
+    _verify_reader_hashes(start_metadata["reader_files"])
     _append_json_line(loaded.directory / "events.jsonl", event)
     _atomic_write_json(loaded.directory / "session.json", document)
 
@@ -741,11 +763,17 @@ def change_pressure(
     _non_empty_text(reason, "pressure change reason")
     pressure = loaded.state["pressure"]
     current = pressure["current"]
-    maximum = pressure["maximum"]
+    if (
+        pressure.get("name") != "Exposure"
+        or pressure.get("maximum") != 5
+        or type(current) is not int
+        or not 0 <= current <= 5
+    ):
+        raise HarnessError("pressure must be Exposure on the exact 0/5 track")
     requested_after = current + delta
     if requested_after < 0:
         raise HarnessError("pressure change result is below 0")
-    after = min(maximum, requested_after)
+    after = min(5, requested_after)
     applied_delta = after - current
     state = copy.deepcopy(loaded.state)
     state["pressure"]["current"] = after
@@ -969,9 +997,8 @@ def correct_session(
     elif operation == "set-pressure":
         if name is not None or replacement_text is not None:
             raise HarnessError("set-pressure correction received unsupported arguments")
-        maximum = state["pressure"]["maximum"]
-        if type(value) is not int or not 0 <= value <= maximum:
-            raise HarnessError(f"pressure correction value is outside 0/{maximum}")
+        if type(value) is not int or not 0 <= value <= 5:
+            raise HarnessError("pressure correction value is outside 0/5")
         state["pressure"]["current"] = value
         compensation = f"set {state['pressure']['name']} to {value}"
     elif operation in {"add-possession", "remove-possession", "add-mark", "remove-mark"}:
@@ -1294,9 +1321,10 @@ def goto_passage(
     if not isinstance(destination, str) or destination not in passages:
         raise HarnessError(f"undefined passage {destination}")
     current = loaded.state["current_passage"]
+    _, _, passage_body = passages[current].partition("\n")
     if re.search(
         rf"(?<![A-Za-z0-9_]){re.escape(destination)}(?![A-Za-z0-9_])",
-        passages[current],
+        passage_body,
     ) is None:
         raise HarnessError(
             f"destination {destination} is not referenced in passage {current}"
@@ -1616,6 +1644,7 @@ def render_report(document: JSONDict, events: Sequence[JSONDict]) -> str:
 
 def write_report(loaded: LoadedSession) -> Path:
     """Atomically replace this session's derived report without recording activity."""
+    _verify_identity_metadata(loaded.document, loaded.events, loaded.directory.name)
     path = loaded.directory / "report.md"
     _atomic_write_text(path, render_report(loaded.document, loaded.events))
     return path
@@ -1628,6 +1657,8 @@ def recover_cache(
 ) -> LoadedSession:
     loaded = load_session(sessions_dir, session_id, verify_cache=False)
     document = copy.deepcopy(loaded.document)
+    document["session_id"] = session_id
+    document["created_at"] = loaded.events[0]["timestamp"]
     document["current_state"] = copy.deepcopy(loaded.state)
     document["workflow"] = copy.deepcopy(loaded.workflow)
     document["last_event"] = len(loaded.events)

@@ -139,6 +139,12 @@ class HarnessTestCase(unittest.TestCase):
             self.fixed_clock,
         )
 
+    def persisted_bytes(self, loaded: lp.LoadedSession) -> tuple[bytes, bytes]:
+        return (
+            (loaded.directory / "events.jsonl").read_bytes(),
+            (loaded.directory / "session.json").read_bytes(),
+        )
+
     def tearDown(self) -> None:
         self.temporary_directory.cleanup()
 
@@ -204,6 +210,32 @@ class StateMutationTests(HarnessTestCase):
         self.assertEqual(event["data"]["applied_delta"], 5)
         with self.assertRaisesRegex(lp.HarnessError, "below 0"):
             lp.change_pressure(loaded, -6, "Invalid", self.fixed_clock)
+
+    def test_pressure_track_is_exactly_exposure_zero_through_five(self) -> None:
+        for pressure in (
+            ("Alert", 0, 5),
+            ("Exposure", 0, 7),
+        ):
+            with self.subTest(pressure=pressure):
+                with self.assertRaisesRegex(lp.HarnessError, "Exposure.*0/5"):
+                    lp.build_initial_state(
+                        attributes={"BRN": 13},
+                        resources={"Fortune": (10, 10), "Stamina": (6, 6)},
+                        pressure=pressure,
+                        possessions=[],
+                        story_marks=[],
+                        start_passage="S01",
+                    )
+
+    def test_malformed_pressure_maximum_cannot_authorize_apply_above_five(self) -> None:
+        loaded = self.start()
+        loaded.state["pressure"]["maximum"] = 7
+        before = self.persisted_bytes(loaded)
+
+        with self.assertRaisesRegex(lp.HarnessError, "Exposure.*0/5"):
+            lp.change_pressure(loaded, 7, "Invalid historical track", self.fixed_clock)
+
+        self.assertEqual(self.persisted_bytes(loaded), before)
 
     def test_collection_actions_distinguish_consuming_removing_and_duplicates(self) -> None:
         loaded = self.start()
@@ -300,32 +332,46 @@ class LifecycleAndCorrectionTests(HarnessTestCase):
         loaded = self.start()
         lp.pause_session(loaded, "Voice break", self.fixed_clock)
         self.story.write_text("## S01 — Changed\n", encoding="utf-8")
-        before = (loaded.directory / "events.jsonl").read_bytes()
+        before = self.persisted_bytes(loaded)
 
         with self.assertRaisesRegex(lp.HarnessError, "reader file changed: story"):
             lp.resume_session(loaded, self.fixed_clock)
 
-        self.assertEqual((loaded.directory / "events.jsonl").read_bytes(), before)
+        self.assertEqual(self.persisted_bytes(loaded), before)
 
     def test_lifecycle_transition_rules_and_finished_read_only_access(self) -> None:
         loaded = self.start()
+        before = self.persisted_bytes(loaded)
         with self.assertRaisesRegex(lp.HarnessError, "cannot resume"):
             lp.resume_session(loaded, self.fixed_clock)
+        self.assertEqual(self.persisted_bytes(loaded), before)
+
+        before = self.persisted_bytes(loaded)
         with self.assertRaisesRegex(lp.HarnessError, "outcome must be non-empty"):
             lp.finish_session(loaded, " ", self.fixed_clock)
+        self.assertEqual(self.persisted_bytes(loaded), before)
+
         lp.pause_session(loaded, "Break", self.fixed_clock)
+        before = self.persisted_bytes(loaded)
         with self.assertRaisesRegex(lp.HarnessError, "cannot pause"):
             lp.pause_session(loaded, "Again", self.fixed_clock)
+        self.assertEqual(self.persisted_bytes(loaded), before)
+
+        before = self.persisted_bytes(loaded)
         with self.assertRaisesRegex(lp.HarnessError, "cannot finish"):
             lp.finish_session(loaded, "Too early", self.fixed_clock)
+        self.assertEqual(self.persisted_bytes(loaded), before)
+
         lp.resume_session(lp.load_session(self.root / "sessions", "test-session"), self.fixed_clock)
         reloaded = lp.load_session(self.root / "sessions", "test-session")
         lp.finish_session(reloaded, "E01 — theft abandoned", self.fixed_clock)
 
         self.assertEqual(reloaded.state["status"], "finished")
         self.assertIn("Status: finished", lp.format_state(reloaded.state))
+        before = self.persisted_bytes(reloaded)
         with self.assertRaisesRegex(lp.HarnessError, "status is finished"):
             lp.record_note(reloaded, "player", "One more thought", self.fixed_clock)
+        self.assertEqual(self.persisted_bytes(reloaded), before)
 
     def test_finished_session_is_immutable_for_all_recording_operations(self) -> None:
         loaded = self.start()
@@ -473,6 +519,23 @@ class LifecycleAndCorrectionTests(HarnessTestCase):
                     before,
                 )
 
+    def test_pressure_correction_cannot_use_a_malformed_maximum_to_exceed_five(self) -> None:
+        loaded = self.start()
+        loaded.state["pressure"]["maximum"] = 7
+        before = self.persisted_bytes(loaded)
+
+        with self.assertRaisesRegex(lp.HarnessError, "outside 0/5"):
+            lp.correct_session(
+                loaded,
+                1,
+                "Invalid historical track",
+                "set-pressure",
+                value=6,
+                clock=self.fixed_clock,
+            )
+
+        self.assertEqual(self.persisted_bytes(loaded), before)
+
 
 class MarkdownIndexTests(HarnessTestCase):
     def test_passage_index_returns_one_bounded_block(self) -> None:
@@ -556,6 +619,33 @@ class PersistenceTests(HarnessTestCase):
         with self.assertRaisesRegex(lp.HarnessError, "reader file changed"):
             lp.load_session(self.root / "sessions", "test-session")
 
+    def test_loaded_session_rechecks_each_reader_before_appending(self) -> None:
+        for label, reader_path in (
+            ("story", self.story),
+            ("rules", self.rules),
+            ("sheet", self.sheet),
+        ):
+            with self.subTest(label=label):
+                session_id = f"changed-{label}"
+                loaded = self.start(session_id)
+                original = reader_path.read_bytes()
+                before = self.persisted_bytes(loaded)
+                reader_path.write_bytes(original + b"\nChanged after loading.\n")
+                try:
+                    with self.assertRaisesRegex(
+                        lp.HarnessError,
+                        f"reader file changed: {label}",
+                    ):
+                        lp.record_note(
+                            loaded,
+                            "operator",
+                            "Attempt after reader drift",
+                            self.fixed_clock,
+                        )
+                    self.assertEqual(self.persisted_bytes(loaded), before)
+                finally:
+                    reader_path.write_bytes(original)
+
     def test_cache_cannot_replace_authoritative_start_metadata(self) -> None:
         loaded = self.start()
         document_path = loaded.directory / "session.json"
@@ -610,6 +700,35 @@ class PersistenceTests(HarnessTestCase):
         )
         self.assertEqual(recovered.document["last_event"], 1)
         self.assertEqual(recovered.state, self.initial_state())
+
+    def test_cache_identity_tampering_is_rejected_and_explicitly_recovered(self) -> None:
+        cases = (
+            ("session_id", "forged-session", "identity-session"),
+            ("created_at", "1999-12-31T23:59:59Z", self.fixed_clock()),
+        )
+        for field, forged_value, authoritative_value in cases:
+            with self.subTest(field=field):
+                session_id = f"identity-{field.replace('_', '-')}"
+                loaded = self.start(session_id)
+                if field == "session_id":
+                    authoritative_value = session_id
+                cache_path = loaded.directory / "session.json"
+                document = json.loads(cache_path.read_text(encoding="utf-8"))
+                document[field] = forged_value
+                cache_path.write_text(json.dumps(document), encoding="utf-8")
+
+                with self.assertRaisesRegex(lp.HarnessError, "identity metadata"):
+                    lp.load_session(self.root / "sessions", session_id)
+
+                recovered = lp.recover_cache(
+                    self.root / "sessions",
+                    session_id,
+                    self.fixed_clock,
+                )
+                self.assertEqual(recovered.document[field], authoritative_value)
+                report = lp.render_report(recovered.document, recovered.events)
+                self.assertIn(str(authoritative_value), report)
+                self.assertNotIn(forged_value, report)
 
     def test_broken_event_chain_cannot_be_recovered(self) -> None:
         loaded = self.start()
@@ -685,6 +804,32 @@ class ObserverOperationTests(HarnessTestCase):
 
         self.assertEqual(loaded.state["current_passage"], "S02")
         self.assertEqual(loaded.workflow, {"choice": None, "roll": None})
+
+    def test_heading_does_not_authorize_an_unreferenced_self_transition(self) -> None:
+        loaded = self.start()
+        lp.record_choice(loaded, "Remain here", None, "S01", self.fixed_clock)
+        before = self.persisted_bytes(loaded)
+
+        with self.assertRaisesRegex(lp.HarnessError, "not referenced"):
+            lp.goto_passage(loaded, "S01", self.fixed_clock)
+
+        self.assertEqual(self.persisted_bytes(loaded), before)
+
+    def test_body_reference_can_authorize_an_intentional_self_transition(self) -> None:
+        self.story.write_text(
+            self.story.read_text(encoding="utf-8").replace(
+                "Turn to **S02**.",
+                "Remain at **S01**, or turn to **S02**.",
+            ),
+            encoding="utf-8",
+        )
+        loaded = self.start()
+        lp.record_choice(loaded, "Remain here", None, "S01", self.fixed_clock)
+
+        lp.goto_passage(loaded, "S01", self.fixed_clock)
+
+        self.assertEqual(loaded.state["current_passage"], "S01")
+        self.assertEqual(loaded.events[-1]["data"]["to"], "S01")
 
     def test_unreferenced_or_undefined_destination_does_not_mutate(self) -> None:
         loaded = self.start()
@@ -1168,11 +1313,28 @@ class CliTests(HarnessTestCase):
     def test_help_exposes_all_and_only_the_locked_command_surface(self) -> None:
         parser = lp.build_parser()
         help_text = parser.format_help()
-        for command in (
+        expected_commands = {
             "start", "show", "state", "note", "lookup", "choose", "roll",
             "fortune", "apply", "goto", "correct", "recover-cache", "pause",
             "resume", "finish", "report",
-        ):
+        }
+        command_action = next(
+            action
+            for action in parser._actions
+            if isinstance(getattr(action, "choices", None), dict)
+        )
+        self.assertEqual(set(command_action.choices), expected_commands)
+        apply_parser = command_action.choices["apply"]
+        apply_action = next(
+            action
+            for action in apply_parser._actions
+            if isinstance(getattr(action, "choices", None), dict)
+        )
+        self.assertEqual(
+            set(apply_action.choices),
+            {"resource", "pressure", "possession", "mark"},
+        )
+        for command in expected_commands:
             self.assertIn(command, help_text)
 
         option_strings: set[str] = set()

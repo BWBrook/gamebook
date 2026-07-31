@@ -81,8 +81,8 @@ python3 tools/live_playtest.py roll SESSION_ID --attribute NAME --mode standard|
 python3 tools/live_playtest.py fortune SESSION_ID --spend INTEGER
 python3 tools/live_playtest.py apply resource SESSION_ID NAME --delta INTEGER --reason TEXT
 python3 tools/live_playtest.py apply pressure SESSION_ID --delta INTEGER --reason TEXT
-python3 tools/live_playtest.py apply possession SESSION_ID add|consume|remove NAME --reason TEXT
-python3 tools/live_playtest.py apply mark SESSION_ID add|consume|remove NAME --reason TEXT
+python3 tools/live_playtest.py apply possession SESSION_ID add|consume|remove NAME --reason TEXT [--allow-duplicate]
+python3 tools/live_playtest.py apply mark SESSION_ID add|consume|remove NAME --reason TEXT [--allow-duplicate]
 python3 tools/live_playtest.py goto SESSION_ID PASSAGE_ID
 python3 tools/live_playtest.py correct SESSION_ID --target-event INTEGER --reason TEXT --annotate TEXT
 python3 tools/live_playtest.py recover-cache SESSION_ID

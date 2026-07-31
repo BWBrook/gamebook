@@ -970,7 +970,7 @@ possession and story-mark insertion order.
 2. no ordinary roll is waiting for a Fortune decision;
 3. the destination is defined in the story passage index;
 4. the destination identifier occurs as a whole token within the current
-   passage block; and
+   passage body after its heading; and
 5. if the choice recorded an intended destination, it equals the supplied
    destination.
 
