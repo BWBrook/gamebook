@@ -1321,6 +1321,304 @@ def goto_passage(
     )
 
 
+def _report_cell(value: Any) -> str:
+    """Return a value that is safe and readable in a Markdown table cell."""
+    if value is None:
+        text = "—"
+    elif isinstance(value, bool):
+        text = "yes" if value else "no"
+    elif isinstance(value, (list, tuple)):
+        text = ", ".join(str(item) for item in value)
+    else:
+        text = str(value)
+    return text.replace("|", r"\|").replace("\r\n", "\n").replace("\r", "\n").replace("\n", "<br>")
+
+
+def _report_table(headers: Sequence[str], rows: Sequence[Sequence[Any]]) -> list[str]:
+    if not rows:
+        return ["None recorded."]
+    return [
+        "| " + " | ".join(headers) + " |",
+        "| " + " | ".join("---" for _ in headers) + " |",
+        *[
+            "| " + " | ".join(_report_cell(value) for value in row) + " |"
+            for row in rows
+        ],
+    ]
+
+
+def _report_state(snapshot: Any) -> str:
+    if not isinstance(snapshot, dict) or not isinstance(snapshot.get("state"), dict):
+        return "—"
+    return format_state(snapshot["state"])
+
+
+def _state_change_reason(event: JSONDict) -> str:
+    data = event.get("data")
+    if not isinstance(data, dict):
+        return "—"
+    if data.get("reason") is not None:
+        return str(data["reason"])
+    if event.get("type") == "fortune_decided":
+        return f"Fortune spend {data.get('spend', '—')}"
+    if event.get("type") == "session_finished":
+        return str(data.get("outcome", "—"))
+    return "—"
+
+
+def _state_change_action(event: JSONDict) -> str:
+    data = event.get("data")
+    if isinstance(data, dict) and data.get("action") is not None:
+        return f"{event.get('type')} ({data['action']})"
+    return str(event.get("type", "—"))
+
+
+def _parse_report_timestamp(value: Any) -> datetime | None:
+    if not isinstance(value, str):
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def _format_interval(start: Any, end: Any) -> str:
+    start_time = _parse_report_timestamp(start)
+    end_time = _parse_report_timestamp(end)
+    if start_time is None or end_time is None:
+        return "Unavailable: unparseable timestamp"
+    return f"{(end_time - start_time).total_seconds():.3f} seconds"
+
+
+def _atomic_write_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        dir=path.parent,
+    )
+    temporary_path = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_path, path)
+    except BaseException:
+        temporary_path.unlink(missing_ok=True)
+        raise
+
+
+def render_report(document: JSONDict, events: Sequence[JSONDict]) -> str:
+    """Render a deterministic report using only stored session metadata and events."""
+    event_list = list(events)
+    reader_files = document.get("reader_files", {})
+    if not isinstance(reader_files, dict):
+        reader_files = {}
+
+    lines = ["# Live Playtest Report", "", "## Session"]
+    session_rows: list[tuple[str, Any]] = [
+        ("ID", document.get("session_id")),
+        ("Purpose", document.get("purpose")),
+        ("Hypothesis", document.get("hypothesis") or "None recorded."),
+        ("Dice mode", document.get("dice_mode")),
+        ("Observer mode", document.get("observer_mode")),
+        ("Created", document.get("created_at")),
+    ]
+    for label in ("story", "rules", "sheet"):
+        record = reader_files.get(label, {})
+        if isinstance(record, dict):
+            session_rows.append((f"{label.title()} reader path", record.get("path")))
+            session_rows.append((f"{label.title()} reader SHA-256", record.get("sha256")))
+    lines.extend(_report_table(("Field", "Stored value"), session_rows))
+
+    lines.extend(["", "## Route"])
+    route_rows: list[tuple[Any, ...]] = []
+    for event in event_list:
+        event_type = event.get("type")
+        data = event.get("data", {})
+        if event_type == "passage_shown":
+            route_rows.append((event.get("number"), event.get("timestamp"), "shown", event.get("passage"), "—"))
+        elif event_type == "passage_transition" and isinstance(data, dict):
+            route_rows.append((event.get("number"), event.get("timestamp"), "transition", data.get("from"), data.get("to")))
+    lines.extend(_report_table(("Event", "Timestamp", "Action", "From", "To"), route_rows))
+
+    lines.extend(["", "## Player narration"])
+    player_rows = [
+        (event.get("number"), event.get("timestamp"), event.get("data", {}).get("text"))
+        for event in event_list
+        if event.get("type") == "player_note" and isinstance(event.get("data"), dict)
+    ]
+    lines.extend(_report_table(("Event", "Timestamp", "Received text"), player_rows))
+
+    lines.extend(["", "## Operator observations"])
+    operator_rows = [
+        (event.get("number"), event.get("timestamp"), event.get("data", {}).get("text"))
+        for event in event_list
+        if event.get("type") == "operator_note" and isinstance(event.get("data"), dict)
+    ]
+    lines.extend(_report_table(("Event", "Timestamp", "Observed text"), operator_rows))
+
+    lines.extend(["", "## Choices and tests"])
+    choices: dict[Any, JSONDict] = {}
+    rolls: dict[Any, JSONDict] = {}
+    for event in event_list:
+        data = event.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        if event.get("type") == "choice_committed":
+            choices[event.get("number")] = event
+        elif event.get("type") == "roll_recorded" and isinstance(data.get("roll"), dict):
+            rolls[data["roll"].get("choice_event")] = data["roll"]
+        elif event.get("type") == "fortune_decided" and isinstance(data.get("roll"), dict):
+            rolls[data["roll"].get("choice_event")] = data["roll"]
+    choice_rows: list[tuple[Any, ...]] = []
+    for number, event in choices.items():
+        data = event["data"]
+        roll = rolls.get(number, {})
+        choice_rows.append(
+            (
+                number,
+                data.get("text"),
+                data.get("method"),
+                data.get("destination"),
+                roll.get("attribute"),
+                roll.get("mode"),
+                roll.get("dice"),
+                roll.get("selected_index"),
+                roll.get("selected_die"),
+                roll.get("target"),
+                roll.get("provisional_margin"),
+                roll.get("natural"),
+                roll.get("fortune_status"),
+                roll.get("fortune_spent"),
+                roll.get("final_die"),
+                roll.get("final_margin"),
+                roll.get("success"),
+            )
+        )
+    lines.extend(
+        _report_table(
+            (
+                "Choice event",
+                "Choice text",
+                "Method",
+                "Destination",
+                "Attribute",
+                "Mode",
+                "Dice",
+                "Selected index",
+                "Selected face",
+                "Target",
+                "Provisional margin",
+                "Natural",
+                "Fortune decision",
+                "Fortune spent",
+                "Final die",
+                "Final margin",
+                "Success",
+            ),
+            choice_rows,
+        )
+    )
+
+    lines.extend(["", "## State history"])
+    state_rows: list[tuple[Any, ...]] = []
+    for event in event_list:
+        before = event.get("before")
+        after = event.get("after")
+        before_state = before.get("state") if isinstance(before, dict) else None
+        after_state = after.get("state") if isinstance(after, dict) else None
+        if before_state != after_state:
+            state_rows.append(
+                (
+                    event.get("number"),
+                    event.get("timestamp"),
+                    _state_change_action(event),
+                    _state_change_reason(event),
+                    _report_state(before),
+                    _report_state(after),
+                )
+            )
+    lines.extend(_report_table(("Event", "Timestamp", "Activity", "Reason", "Before", "After"), state_rows))
+
+    lines.extend(["", "## Rules activity"])
+    rules_rows: list[tuple[Any, ...]] = []
+    for event in event_list:
+        data = event.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        if event.get("type") == "rules_question":
+            rules_rows.append((event.get("number"), event.get("timestamp"), "question", data.get("text"), "—"))
+        elif event.get("type") == "rules_lookup":
+            rules_rows.append((event.get("number"), event.get("timestamp"), "lookup", data.get("section"), data.get("sha256")))
+    lines.extend(_report_table(("Event", "Timestamp", "Activity", "Detail", "Stored SHA-256"), rules_rows))
+
+    lines.extend(["", "## Corrections and pauses"])
+    correction_rows: list[tuple[Any, ...]] = []
+    for event in event_list:
+        data = event.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        if event.get("type") == "correction":
+            correction_rows.append((event.get("number"), event.get("timestamp"), "correction", data.get("target_event"), data.get("reason"), data.get("compensation")))
+        elif event.get("type") == "session_paused":
+            correction_rows.append((event.get("number"), event.get("timestamp"), "pause", "—", data.get("reason"), "—"))
+        elif event.get("type") == "session_resumed":
+            correction_rows.append((event.get("number"), event.get("timestamp"), "resume", "—", "—", "—"))
+    lines.extend(_report_table(("Event", "Timestamp", "Activity", "Target", "Reason", "Compensation"), correction_rows))
+
+    lines.extend(["", "## Timing"])
+    timing_rows = [
+        (event.get("number"), event.get("timestamp"), event.get("type"))
+        for event in event_list
+    ]
+    lines.extend(_report_table(("Event", "Recorded timestamp", "Event type"), timing_rows))
+    intervals: list[tuple[Any, ...]] = []
+    for index, event in enumerate(event_list):
+        if event.get("type") != "passage_shown":
+            continue
+        choice = next((candidate for candidate in event_list[index + 1:] if candidate.get("type") == "choice_committed"), None)
+        if choice is not None:
+            intervals.append((event.get("number"), choice.get("number"), _format_interval(event.get("timestamp"), choice.get("timestamp"))))
+    lines.append("")
+    lines.extend(_report_table(("Passage shown", "Next choice", "Interaction interval"), intervals))
+
+    lines.extend(["", "## Final state"])
+    final_state = event_list[-1].get("after", {}).get("state") if event_list else None
+    if isinstance(final_state, dict):
+        lines.extend(["```text", format_state(final_state), "```"])
+    else:
+        lines.append("None recorded.")
+    finished = next((event for event in reversed(event_list) if event.get("type") == "session_finished"), None)
+    if isinstance(finished, dict) and isinstance(finished.get("data"), dict):
+        lines.append(f"Outcome: {finished['data'].get('outcome', '—')}")
+    else:
+        lines.append("Session unfinished")
+
+    lines.extend(
+        [
+            "",
+            "## Limitations",
+            "- raw audio was not retained.",
+            "- Voice-derived text is stored as received.",
+            "- Codex was not blind to unread material.",
+            "- This was not a blind or controlled experiment.",
+            "- Timing includes network, tool, and transcription delay.",
+            "- One player cannot establish general behaviour.",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def write_report(loaded: LoadedSession) -> Path:
+    """Atomically replace this session's derived report without recording activity."""
+    path = loaded.directory / "report.md"
+    _atomic_write_text(path, render_report(loaded.document, loaded.events))
+    return path
+
+
 def recover_cache(
     sessions_dir: Path,
     session_id: str,

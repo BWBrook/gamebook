@@ -843,3 +843,98 @@ class RollRecordingTests(HarnessTestCase):
             (events_path.read_bytes(), cache_path.read_bytes()),
             before_fortune,
         )
+
+
+class ReportTests(HarnessTestCase):
+    def build_eventful_session(self) -> lp.LoadedSession:
+        loaded = self.start("report-session")
+        lp.show_current_passage(loaded, self.fixed_clock)
+        player_note = lp.record_note(
+            loaded,
+            "player",
+            "I hear a | pause\nand want to press on.",
+            self.fixed_clock,
+        )
+        lp.record_note(loaded, "rules-question", "Can Fortune help?", self.fixed_clock)
+        lp.record_rules_lookup(loaded, "Fortune", self.fixed_clock)
+        lp.record_choice(loaded, "Press onward", "spoken choice", "S02", self.fixed_clock)
+        lp.record_roll(loaded, "CUN", "standard", [15], self.fixed_clock)
+        lp.record_fortune(loaded, 3, self.fixed_clock)
+        lp.goto_passage(loaded, "S02", self.fixed_clock)
+        lp.change_collection(
+            loaded,
+            "possessions",
+            "add",
+            "Guard's spear",
+            "Taken from guard",
+            clock=self.fixed_clock,
+        )
+        lp.change_collection(
+            loaded,
+            "possessions",
+            "consume",
+            "Guard's spear",
+            "Used to bar a door",
+            clock=self.fixed_clock,
+        )
+        lp.record_note(
+            loaded,
+            "operator",
+            "Observed ambiguity: which door?",
+            self.fixed_clock,
+        )
+        lp.pause_session(loaded, "Voice break", self.fixed_clock)
+        loaded = lp.load_session(self.root / "sessions", "report-session")
+        lp.resume_session(loaded, self.fixed_clock)
+        lp.correct_session(
+            loaded,
+            player_note["number"],
+            "The player clarified the pause.",
+            "annotate",
+            replacement_text="The player named the pause.",
+            clock=self.fixed_clock,
+        )
+        lp.finish_session(loaded, "S02 — passage completed", self.fixed_clock)
+        return loaded
+
+    def test_report_is_deterministic_complete_and_derived(self) -> None:
+        loaded = self.build_eventful_session()
+        event_bytes = (loaded.directory / "events.jsonl").read_bytes()
+        cache_bytes = (loaded.directory / "session.json").read_bytes()
+
+        first = lp.render_report(loaded.document, loaded.events)
+        second = lp.render_report(loaded.document, loaded.events)
+        self.assertEqual(first, second)
+        for heading in (
+            "# Live Playtest Report",
+            "## Session",
+            "## Route",
+            "## Player narration",
+            "## Operator observations",
+            "## Choices and tests",
+            "## State history",
+            "## Rules activity",
+            "## Corrections and pauses",
+            "## Timing",
+            "## Final state",
+            "## Limitations",
+        ):
+            self.assertIn(heading, first)
+        self.assertIn("raw audio was not retained", first)
+        self.assertIn("not a blind or controlled experiment", first)
+        self.assertIn("Guard's spear", first)
+        self.assertIn("consum", first.casefold())
+        self.assertIn("I hear a \\| pause<br>and want to press on.", first)
+        self.assertIn(
+            "| 6 | Press onward | spoken choice | S02 | CUN | standard | 15 |",
+            first,
+        )
+        self.assertIn("| decided | 3 | 12 | 0 | yes |", first)
+        self.assertIn("Interaction interval", first)
+
+        report_path = lp.write_report(loaded)
+        first_bytes = report_path.read_bytes()
+        report_path = lp.write_report(loaded)
+        self.assertEqual(report_path.read_bytes(), first_bytes)
+        self.assertEqual((loaded.directory / "events.jsonl").read_bytes(), event_bytes)
+        self.assertEqual((loaded.directory / "session.json").read_bytes(), cache_bytes)
