@@ -1006,6 +1006,129 @@ class ReportTests(HarnessTestCase):
         self.assertIn("Status: active", report)
 
 
+class TowerSmokeReplayTests(unittest.TestCase):
+    """Prove the audited route against the authoritative Tower reader files."""
+
+    def setUp(self) -> None:
+        self.temporary_directory = tempfile.TemporaryDirectory()
+        self.root = Path(__file__).resolve().parents[1]
+
+    def tearDown(self) -> None:
+        self.temporary_directory.cleanup()
+
+    def fixed_clock(self) -> str:
+        return "2026-07-31T10:00:00Z"
+
+    def test_audited_s01_to_s14_route_replays_the_reported_state(self) -> None:
+        tower = self.root / "stories/public_domain/howard/tower_of_the_elephant/playtest"
+        loaded = lp.start_session(
+            Path(self.temporary_directory.name) / "sessions",
+            "tower-smoke",
+            tower / "slice-01.md",
+            tower / "quick-rules.md",
+            tower / "adventure-sheet.md",
+            "Deterministic audited route replay",
+            "The observer reproduces the existing 7/6/0 route",
+            lp.build_initial_state(
+                {"BRN": 13, "AGI": 12, "CUN": 12, "WIL": 12},
+                {"Fortune": (10, 10), "Stamina": (6, 6)},
+                ("Exposure", 0, 5),
+                ["Sword"],
+                [],
+                "S01",
+            ),
+            self.fixed_clock,
+        )
+
+        def choose_and_go(text: str, destination: str) -> None:
+            lp.show_current_passage(loaded, self.fixed_clock)
+            lp.record_choice(
+                loaded,
+                text,
+                None,
+                destination,
+                self.fixed_clock,
+            )
+            lp.goto_passage(loaded, destination, self.fixed_clock)
+
+        choose_and_go("Climb now", "S03")
+        choose_and_go("Examine the corpse", "S04")
+        lp.show_current_passage(loaded, self.fixed_clock)
+        lp.record_choice(loaded, "Take the guard's spear", None, "S05", self.fixed_clock)
+        lp.change_collection(
+            loaded,
+            "possessions",
+            "add",
+            "Guard's spear",
+            "Printed S04 discovery",
+            clock=self.fixed_clock,
+        )
+        lp.goto_passage(loaded, "S05", self.fixed_clock)
+
+        lp.show_current_passage(loaded, self.fixed_clock)
+        lp.record_choice(loaded, "Stalk the stranger", "Stalk", "S06", self.fixed_clock)
+        lp.record_roll(loaded, "CUN", "standard", [15], self.fixed_clock)
+        lp.record_fortune(loaded, 3, self.fixed_clock)
+        lp.goto_passage(loaded, "S06", self.fixed_clock)
+
+        choose_and_go("Hear the alliance", "S07")
+        choose_and_go("Accept Taurus", "S08")
+        choose_and_go("Cross the inner wall", "S09")
+        choose_and_go("Trust Taurus", "S10")
+        choose_and_go("Advance after the cloud", "S11")
+
+        lp.show_current_passage(loaded, self.fixed_clock)
+        lp.record_choice(
+            loaded,
+            "Brace the guard's spear",
+            "Brace the guard's spear",
+            "S12",
+            self.fixed_clock,
+        )
+        lp.change_collection(
+            loaded,
+            "possessions",
+            "consume",
+            "Guard's spear",
+            "Committed before the S11 roll",
+            clock=self.fixed_clock,
+        )
+        lp.record_roll(loaded, "BRN", "advantage", [6, 20], self.fixed_clock)
+        lp.record_fortune(loaded, 0, self.fixed_clock)
+        lp.goto_passage(loaded, "S12", self.fixed_clock)
+        choose_and_go("Give Taurus room to finish the cast", "S14")
+        lp.show_current_passage(loaded, self.fixed_clock)
+        lp.finish_session(loaded, "S14 — slice complete", self.fixed_clock)
+        lp.write_report(loaded)
+
+        self.assertEqual(
+            loaded.state["resources"],
+            {
+                "Fortune": {"current": 7, "maximum": 10},
+                "Stamina": {"current": 6, "maximum": 6},
+            },
+        )
+        self.assertEqual(
+            loaded.state["pressure"],
+            {"name": "Exposure", "current": 0, "maximum": 5},
+        )
+        self.assertEqual(loaded.state["possessions"], ["Sword"])
+        self.assertEqual(loaded.state["story_marks"], [])
+        self.assertEqual(loaded.state["current_passage"], "S14")
+        self.assertEqual(loaded.state["status"], "finished")
+        self.assertEqual(lp.replay_events(loaded.events)["state"], loaded.state)
+        reloaded = lp.load_session(Path(self.temporary_directory.name) / "sessions", "tower-smoke")
+        self.assertEqual(reloaded.state, loaded.state)
+        self.assertEqual(reloaded.workflow, loaded.workflow)
+        report = (loaded.directory / "report.md").read_text(encoding="utf-8")
+        self.assertIn("15", report)
+        self.assertIn("-3", report)
+        self.assertIn("Fortune", report)
+        self.assertIn("6, 20", report)
+        self.assertIn("Guard's spear", report)
+        self.assertIn("S14", report)
+
+
 class CliTests(HarnessTestCase):
     """Exercise the operator contract through main, without a subprocess."""
 
