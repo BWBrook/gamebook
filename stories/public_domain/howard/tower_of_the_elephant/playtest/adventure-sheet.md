@@ -1,34 +1,51 @@
 # *The Tower of the Elephant* Adventure Sheet
 
-## Conan
+## Left Page: Character and Resources
 
-`BRN 13 | AGI 12 | CUN 12 | WIL 12 | FOR 10/10 | STM 6/6`
+### Conan
 
-## Fortune
+Fixed profile: `BRN 13 | AGI 12 | CUN 12 | WIL 12 | FOR 10/10 | STM 6/6`
 
-Available: □ □ □ □ □ □ □ □ □ □
+### Fortune
 
-## Stamina
+Begin with ten boxes. Cross off spent Fortune from the right and never exceed
+the printed maximum.
 
-Available: □ □ □ □ □ □
+□ □ □ □ □ □ □ □ □ □
 
-## Exposure
+### Stamina
 
-Circle the current value. Begin at **0**.
+Begin with six boxes. Cross off lost Stamina from the right and never exceed
+the printed maximum.
+
+□ □ □ □ □ □
+
+## Right Page: Adventure State
+
+### Exposure
+
+Circle the current value; begin at **0**.
 
 **0** | 1 | 2 | 3 | 4 | 5
 
-## Possessions
+0–2 — Unconfirmed; 3 — Uneasy; 4 — Search; 5 — Discovered.
 
-- Sword
-- ________________________________________
-- ________________________________________
+### Possessions
 
-## Story marks
+Starting equipment: Sword.
 
 - ________________________________________
 - ________________________________________
+- ________________________________________
 
-Cross off one box for each point of Fortune spent or Stamina lost. Cross off a
-possession or story mark when a passage says it is consumed. Mark the new
-Exposure value whenever it changes. Nothing recovers within this slice.
+### Story marks
+
+- ________________________________________
+- ________________________________________
+- ________________________________________
+
+### Notes
+
+________________________________________________
+
+________________________________________________

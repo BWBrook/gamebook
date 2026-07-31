@@ -1,7 +1,9 @@
 # *The Tower of the Elephant*: Outer Wall Playtest
 
-Read the [quick rules](quick-rules.md), copy or print the
-[adventure sheet](adventure-sheet.md), and begin at **S01**.
+Read the complete [player's rules](quick-rules.md), from **Before You Begin**
+through **Rules at a Glance**. Then copy or print the two-page
+[Adventure Sheet](adventure-sheet.md), prepare its starting values, and begin
+at **S01**.
 
 ## S01 — The Outer Wall
 
