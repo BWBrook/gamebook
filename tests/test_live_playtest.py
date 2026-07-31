@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
 from pathlib import Path
 
 from tools import live_playtest as lp
@@ -1002,3 +1004,194 @@ class ReportTests(HarnessTestCase):
         self.assertIn("Session unfinished", report)
         self.assertIn("Passage: S01", report)
         self.assertIn("Status: active", report)
+
+
+class CliTests(HarnessTestCase):
+    """Exercise the operator contract through main, without a subprocess."""
+
+    def command(self, *arguments: str) -> tuple[int, str, str]:
+        stdout = StringIO()
+        stderr = StringIO()
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            status = lp.main(list(arguments))
+        return status, stdout.getvalue(), stderr.getvalue()
+
+    def start_arguments(self, session_id: str = "cli-session") -> list[str]:
+        return [
+            "--sessions-dir", str(self.root / "sessions"),
+            "start", session_id,
+            "--story", str(self.story),
+            "--rules", str(self.rules),
+            "--sheet", str(self.sheet),
+            "--purpose", "Natural calibration playthrough",
+            "--start-passage", "S01",
+            "--attribute", "BRN=13",
+            "--attribute", "AGI=12",
+            "--attribute", "CUN=12",
+            "--attribute", "WIL=12",
+            "--resource", "Fortune=10/10",
+            "--resource", "Stamina=6/6",
+            "--pressure", "Exposure=0/5",
+            "--possession", "Sword",
+        ]
+
+    def session_arguments(self, *arguments: str) -> tuple[str, ...]:
+        return (
+            "--sessions-dir", str(self.root / "sessions"),
+            *arguments,
+        )
+
+    def test_help_exposes_all_and_only_the_locked_command_surface(self) -> None:
+        parser = lp.build_parser()
+        help_text = parser.format_help()
+        for command in (
+            "start", "show", "state", "note", "lookup", "choose", "roll",
+            "fortune", "apply", "goto", "correct", "recover-cache", "pause",
+            "resume", "finish", "report",
+        ):
+            self.assertIn(command, help_text)
+
+        option_strings: set[str] = set()
+        parsers = [parser]
+        while parsers:
+            current = parsers.pop()
+            for action in current._actions:
+                option_strings.update(action.option_strings)
+                choices = getattr(action, "choices", None)
+                if isinstance(choices, dict):
+                    parsers.extend(
+                        choice for choice in choices.values()
+                        if isinstance(choice, type(parser))
+                    )
+        for forbidden in ("--rng", "--prose-rewrite", "--ai", "--simulation", "--passage-list"):
+            self.assertNotIn(forbidden, option_strings)
+        for correction_option in (
+            "--annotate", "--set-resource", "--set-pressure", "--add-possession",
+            "--remove-possession", "--add-mark", "--remove-mark", "--set-passage",
+            "--clear-workflow",
+        ):
+            self.assertIn(correction_option, option_strings)
+
+    def test_start_show_and_state_create_and_read_the_session(self) -> None:
+        status, stdout, stderr = self.command(*self.start_arguments())
+        self.assertEqual(status, 0)
+        self.assertEqual(stderr, "")
+        self.assertEqual(json.loads(stdout)["event"]["type"], "session_started")
+        self.assertTrue((self.root / "sessions" / "cli-session" / "session.json").exists())
+
+        status, stdout, stderr = self.command(*self.session_arguments("show", "cli-session"))
+        self.assertEqual(status, 0)
+        self.assertEqual(stderr, "")
+        self.assertIn("## S01 — First", stdout)
+        self.assertNotIn("## S02 — Second", stdout)
+
+        status, stdout, stderr = self.command(*self.session_arguments("state", "cli-session"))
+        self.assertEqual(status, 0)
+        self.assertEqual(stderr, "")
+        self.assertIn("Passage: S01", stdout)
+        self.assertIn("Fortune: 10/10", stdout)
+        self.assertIn("Exposure: 0/5", stdout)
+
+    def test_event_commands_dispatch_all_families(self) -> None:
+        status, _, stderr = self.command(*self.start_arguments())
+        self.assertEqual(status, 0)
+        self.assertEqual(stderr, "")
+
+        def record(*arguments: str, event_type: str) -> dict[str, object]:
+            status, stdout, stderr = self.command(*self.session_arguments(*arguments))
+            self.assertEqual(status, 0, stderr)
+            self.assertEqual(stderr, "")
+            payload = json.loads(stdout)
+            self.assertEqual(payload["event"]["type"], event_type)
+            self.assertIn("state", payload)
+            return payload
+
+        record("note", "cli-session", "--kind", "operator", "--text", "Observed pause", event_type="operator_note")
+        status, stdout, stderr = self.command(*self.session_arguments("lookup", "cli-session", "--section", "Fortune"))
+        self.assertEqual(status, 0)
+        self.assertEqual(stderr, "")
+        self.assertIn("## Fortune", stdout)
+        record("choose", "cli-session", "--text", "Press onward", "--method", "spoken", "--destination", "S02", event_type="choice_committed")
+        record("roll", "cli-session", "--attribute", "CUN", "--mode", "standard", "--die", "15", event_type="roll_recorded")
+        record("fortune", "cli-session", "--spend", "3", event_type="fortune_decided")
+        record("goto", "cli-session", "S02", event_type="passage_transition")
+        record("apply", "resource", "cli-session", "Stamina", "--delta", "-1", "--reason", "Injury", event_type="resource_changed")
+        record("apply", "pressure", "cli-session", "--delta", "2", "--reason", "Noise", event_type="pressure_changed")
+        record("apply", "possession", "cli-session", "add", "Spear", "--reason", "Taken", event_type="possession_changed")
+        record("apply", "mark", "cli-session", "add", "Saw smoke", "--reason", "Observed", event_type="story_mark_changed")
+        record("correct", "cli-session", "--target-event", "1", "--reason", "Clarification", "--annotate", "Corrected purpose", event_type="correction")
+        record("pause", "cli-session", "--reason", "Break", event_type="session_paused")
+        record("resume", "cli-session", event_type="session_resumed")
+        record("finish", "cli-session", "--outcome", "S02 complete", event_type="session_finished")
+
+        status, stdout, stderr = self.command(*self.session_arguments("report", "cli-session"))
+        self.assertEqual(status, 0)
+        self.assertEqual(stderr, "")
+        self.assertEqual(Path(stdout.strip()), self.root / "sessions" / "cli-session" / "report.md")
+
+    def test_malformed_start_values_are_harness_errors(self) -> None:
+        for option, value in (
+            ("--attribute", "BRN:not-an-integer"),
+            ("--resource", "Fortune=10"),
+            ("--pressure", "Exposure=0"),
+        ):
+            with self.subTest(option=option):
+                arguments = self.start_arguments(f"bad-{option[2:]}")
+                index = arguments.index(option)
+                arguments[index + 1] = value
+                status, stdout, stderr = self.command(*arguments)
+                self.assertEqual(status, 2)
+                self.assertEqual(stdout, "")
+                self.assertTrue(stderr.startswith("error: "))
+                self.assertNotIn("Traceback", stderr)
+
+    def test_duplicate_attribute_or_resource_names_are_rejected_before_start(self) -> None:
+        for option, duplicate in (
+            ("--attribute", "brn=12"),
+            ("--resource", "fortune=9/10"),
+        ):
+            with self.subTest(option=option):
+                arguments = self.start_arguments(f"duplicate-{option[2:]}")
+                arguments.extend((option, duplicate))
+                status, stdout, stderr = self.command(*arguments)
+                self.assertEqual(status, 2)
+                self.assertEqual(stdout, "")
+                self.assertIn("duplicate", stderr)
+                self.assertFalse((self.root / "sessions" / f"duplicate-{option[2:]}").exists())
+
+    def test_wrong_dice_and_unknown_session_exit_two_without_mutation(self) -> None:
+        status, _, stderr = self.command(*self.start_arguments())
+        self.assertEqual(status, 0)
+        self.assertEqual(stderr, "")
+        status, _, stderr = self.command(*self.session_arguments("choose", "cli-session", "--text", "Press onward"))
+        self.assertEqual(status, 0)
+        self.assertEqual(stderr, "")
+        event_path = self.root / "sessions" / "cli-session" / "events.jsonl"
+        before = event_path.read_bytes()
+        status, stdout, stderr = self.command(*self.session_arguments("roll", "cli-session", "--attribute", "CUN", "--mode", "advantage", "--die", "7"))
+        self.assertEqual(status, 2)
+        self.assertEqual(stdout, "")
+        self.assertTrue(stderr.startswith("error: "))
+        self.assertNotIn("Traceback", stderr)
+        self.assertEqual(event_path.read_bytes(), before)
+
+        status, stdout, stderr = self.command(*self.session_arguments("state", "missing-session"))
+        self.assertEqual(status, 2)
+        self.assertEqual(stdout, "")
+        self.assertEqual(stderr.count("error: "), 1)
+        self.assertNotIn("Traceback", stderr)
+
+    def test_recover_cache_bypasses_normal_cache_verification(self) -> None:
+        status, _, stderr = self.command(*self.start_arguments())
+        self.assertEqual(status, 0)
+        self.assertEqual(stderr, "")
+        cache_path = self.root / "sessions" / "cli-session" / "session.json"
+        cache = json.loads(cache_path.read_text(encoding="utf-8"))
+        cache["last_event"] = 0
+        cache_path.write_text(json.dumps(cache), encoding="utf-8")
+
+        status, stdout, stderr = self.command(*self.session_arguments("recover-cache", "cli-session"))
+        self.assertEqual(status, 0)
+        self.assertEqual(stderr, "")
+        self.assertEqual(json.loads(stdout)["current_passage"], "S01")
+        self.assertEqual(json.loads(cache_path.read_text(encoding="utf-8"))["last_event"], 1)

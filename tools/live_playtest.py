@@ -1635,3 +1635,272 @@ def recover_cache(
     _atomic_write_json(loaded.directory / "session.json", document)
     loaded.document = document
     return loaded
+
+
+class _HarnessArgumentParser(argparse.ArgumentParser):
+    """Convert command-line input errors into the harness's public error type."""
+
+    def error(self, message: str) -> None:
+        raise HarnessError(message)
+
+
+def _command_parser(
+    commands: argparse._SubParsersAction[argparse.ArgumentParser],
+    name: str,
+) -> argparse.ArgumentParser:
+    parser = commands.add_parser(name)
+    parser.add_argument("session_id")
+    return parser
+
+
+def build_parser() -> argparse.ArgumentParser:
+    """Build the locked, explicit operator command surface."""
+    parser = _HarnessArgumentParser()
+    parser.add_argument(
+        "--sessions-dir",
+        type=Path,
+        default=Path(".playtest/sessions"),
+    )
+    commands = parser.add_subparsers(dest="command", required=True)
+
+    start = commands.add_parser("start")
+    start.add_argument("session_id")
+    start.add_argument("--story", type=Path, required=True)
+    start.add_argument("--rules", type=Path, required=True)
+    start.add_argument("--sheet", type=Path, required=True)
+    start.add_argument("--purpose", required=True)
+    start.add_argument("--hypothesis")
+    start.add_argument("--start-passage", default="S01")
+    start.add_argument("--attribute", action="append", required=True)
+    start.add_argument("--resource", action="append", required=True)
+    start.add_argument("--pressure", required=True)
+    start.add_argument("--possession", action="append", default=[])
+    start.add_argument("--mark", action="append", default=[])
+
+    _command_parser(commands, "show")
+    _command_parser(commands, "state")
+
+    note = _command_parser(commands, "note")
+    note.add_argument("--kind", choices=("player", "operator", "rules-question"), required=True)
+    note.add_argument("--text", required=True)
+
+    lookup = _command_parser(commands, "lookup")
+    lookup.add_argument("--section", required=True)
+
+    choose = _command_parser(commands, "choose")
+    choose.add_argument("--text", required=True)
+    choose.add_argument("--method")
+    choose.add_argument("--destination")
+
+    roll = _command_parser(commands, "roll")
+    roll.add_argument("--attribute", required=True)
+    roll.add_argument("--mode", choices=("standard", "advantage", "disadvantage"), required=True)
+    roll.add_argument("--die", type=int, action="append", required=True)
+
+    fortune = _command_parser(commands, "fortune")
+    fortune.add_argument("--spend", type=int, required=True)
+
+    apply = commands.add_parser("apply")
+    apply_commands = apply.add_subparsers(dest="apply_command", required=True)
+    resource = _command_parser(apply_commands, "resource")
+    resource.add_argument("name")
+    resource.add_argument("--delta", type=int, required=True)
+    resource.add_argument("--reason", required=True)
+    pressure = _command_parser(apply_commands, "pressure")
+    pressure.add_argument("--delta", type=int, required=True)
+    pressure.add_argument("--reason", required=True)
+    for collection in ("possession", "mark"):
+        collection_parser = _command_parser(apply_commands, collection)
+        collection_parser.add_argument("action", choices=("add", "consume", "remove"))
+        collection_parser.add_argument("name")
+        collection_parser.add_argument("--reason", required=True)
+        collection_parser.add_argument("--allow-duplicate", action="store_true")
+
+    goto = _command_parser(commands, "goto")
+    goto.add_argument("destination")
+
+    correct = _command_parser(commands, "correct")
+    correct.add_argument("--target-event", type=int, required=True)
+    correct.add_argument("--reason", required=True)
+    correction = correct.add_mutually_exclusive_group(required=True)
+    correction.add_argument("--annotate")
+    correction.add_argument("--set-resource")
+    correction.add_argument("--set-pressure", type=int)
+    correction.add_argument("--add-possession")
+    correction.add_argument("--remove-possession")
+    correction.add_argument("--add-mark")
+    correction.add_argument("--remove-mark")
+    correction.add_argument("--set-passage")
+    correction.add_argument("--clear-workflow", action="store_true")
+
+    _command_parser(commands, "recover-cache")
+    pause = _command_parser(commands, "pause")
+    pause.add_argument("--reason", required=True)
+    _command_parser(commands, "resume")
+    finish = _command_parser(commands, "finish")
+    finish.add_argument("--outcome", required=True)
+    _command_parser(commands, "report")
+    return parser
+
+
+def _named_values(
+    raw_values: Sequence[str],
+    parser: Callable[[str], tuple[Any, ...]],
+    label: str,
+) -> dict[str, Any]:
+    values: dict[str, Any] = {}
+    names: set[str] = set()
+    for raw_value in raw_values:
+        parsed = parser(raw_value)
+        name = parsed[0]
+        value: Any = parsed[1] if len(parsed) == 2 else parsed[1:]
+        normalized = name.strip().casefold()
+        if normalized in names:
+            raise HarnessError(f"duplicate {label} name {name.strip()!r}")
+        names.add(normalized)
+        values[name] = value
+    return values
+
+
+def _print_event(loaded: LoadedSession, event: JSONDict) -> None:
+    print(
+        json.dumps(
+            {"event": event, "state": loaded.state},
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+    )
+
+
+def _correction_from_arguments(arguments: argparse.Namespace) -> tuple[str, JSONDict]:
+    if arguments.annotate is not None:
+        return "annotate", {"replacement_text": arguments.annotate}
+    if arguments.set_resource is not None:
+        name, value = parse_named_integer(arguments.set_resource)
+        return "set-resource", {"name": name, "value": value}
+    if arguments.set_pressure is not None:
+        return "set-pressure", {"value": arguments.set_pressure}
+    if arguments.add_possession is not None:
+        return "add-possession", {"name": arguments.add_possession}
+    if arguments.remove_possession is not None:
+        return "remove-possession", {"name": arguments.remove_possession}
+    if arguments.add_mark is not None:
+        return "add-mark", {"name": arguments.add_mark}
+    if arguments.remove_mark is not None:
+        return "remove-mark", {"name": arguments.remove_mark}
+    if arguments.set_passage is not None:
+        return "set-passage", {"value": arguments.set_passage}
+    if arguments.clear_workflow:
+        return "clear-workflow", {}
+    raise HarnessError("a correction operation is required")
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """Run one explicit operator command, preserving programming failures visibly."""
+    try:
+        arguments = build_parser().parse_args(argv)
+        sessions_dir: Path = arguments.sessions_dir
+        if arguments.command == "start":
+            attributes = _named_values(arguments.attribute, parse_named_integer, "attribute")
+            resources = _named_values(arguments.resource, parse_named_bound, "resource")
+            state = build_initial_state(
+                attributes=attributes,
+                resources=resources,
+                pressure=parse_named_bound(arguments.pressure),
+                possessions=arguments.possession,
+                story_marks=arguments.mark,
+                start_passage=arguments.start_passage,
+            )
+            loaded = start_session(
+                sessions_dir,
+                arguments.session_id,
+                arguments.story,
+                arguments.rules,
+                arguments.sheet,
+                arguments.purpose,
+                arguments.hypothesis,
+                state,
+            )
+            _print_event(loaded, loaded.events[-1])
+            return 0
+
+        if arguments.command == "recover-cache":
+            loaded = recover_cache(sessions_dir, arguments.session_id)
+            print(json.dumps(loaded.state, ensure_ascii=False, indent=2, sort_keys=True))
+            return 0
+
+        loaded = load_session(sessions_dir, arguments.session_id)
+        if arguments.command == "show":
+            print(show_current_passage(loaded), end="")
+        elif arguments.command == "state":
+            print(format_state(loaded.state))
+        elif arguments.command == "note":
+            _print_event(loaded, record_note(loaded, arguments.kind, arguments.text))
+        elif arguments.command == "lookup":
+            print(record_rules_lookup(loaded, arguments.section), end="")
+        elif arguments.command == "choose":
+            _print_event(
+                loaded,
+                record_choice(
+                    loaded,
+                    arguments.text,
+                    arguments.method,
+                    arguments.destination,
+                ),
+            )
+        elif arguments.command == "roll":
+            _print_event(
+                loaded,
+                record_roll(loaded, arguments.attribute, arguments.mode, arguments.die),
+            )
+        elif arguments.command == "fortune":
+            _print_event(loaded, record_fortune(loaded, arguments.spend))
+        elif arguments.command == "apply":
+            if arguments.apply_command == "resource":
+                event = change_resource(loaded, arguments.name, arguments.delta, arguments.reason)
+            elif arguments.apply_command == "pressure":
+                event = change_pressure(loaded, arguments.delta, arguments.reason)
+            else:
+                collection = "possessions" if arguments.apply_command == "possession" else "story_marks"
+                event = change_collection(
+                    loaded,
+                    collection,
+                    arguments.action,
+                    arguments.name,
+                    arguments.reason,
+                    allow_duplicate=arguments.allow_duplicate,
+                )
+            _print_event(loaded, event)
+        elif arguments.command == "goto":
+            _print_event(loaded, goto_passage(loaded, arguments.destination))
+        elif arguments.command == "correct":
+            operation, values = _correction_from_arguments(arguments)
+            _print_event(
+                loaded,
+                correct_session(
+                    loaded,
+                    arguments.target_event,
+                    arguments.reason,
+                    operation,
+                    **values,
+                ),
+            )
+        elif arguments.command == "pause":
+            _print_event(loaded, pause_session(loaded, arguments.reason))
+        elif arguments.command == "resume":
+            _print_event(loaded, resume_session(loaded))
+        elif arguments.command == "finish":
+            _print_event(loaded, finish_session(loaded, arguments.outcome))
+        elif arguments.command == "report":
+            print(write_report(loaded))
+        else:
+            raise HarnessError(f"unknown command {arguments.command!r}")
+        return 0
+    except HarnessError as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
