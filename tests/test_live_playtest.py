@@ -140,6 +140,291 @@ class HarnessTestCase(unittest.TestCase):
         self.temporary_directory.cleanup()
 
 
+class StateMutationTests(HarnessTestCase):
+    def test_resource_pressure_possession_and_mark_changes(self) -> None:
+        loaded = self.start()
+        lp.change_resource(loaded, "Stamina", -1, "Printed injury", self.fixed_clock)
+        lp.change_pressure(loaded, 7, "Printed disturbance", self.fixed_clock)
+        lp.change_collection(
+            loaded,
+            "possessions",
+            "add",
+            "Guard's spear",
+            "Taken at S04",
+            clock=self.fixed_clock,
+        )
+        lp.change_collection(
+            loaded,
+            "story_marks",
+            "add",
+            "Read the strangling",
+            "Discovery at S04",
+            clock=self.fixed_clock,
+        )
+
+        self.assertEqual(loaded.state["resources"]["Stamina"]["current"], 5)
+        self.assertEqual(loaded.state["pressure"]["current"], 5)
+        self.assertIn("Guard's spear", loaded.state["possessions"])
+        self.assertIn("Read the strangling", loaded.state["story_marks"])
+        self.assertEqual(
+            loaded.events[-4]["data"],
+            {
+                "name": "Stamina",
+                "delta": -1,
+                "before": 6,
+                "after": 5,
+                "reason": "Printed injury",
+            },
+        )
+        self.assertEqual(loaded.events[-3]["data"]["requested_delta"], 7)
+        self.assertEqual(loaded.events[-3]["data"]["applied_delta"], 5)
+
+    def test_resource_recovery_and_bounds_are_enforced_case_insensitively(self) -> None:
+        loaded = self.start()
+        lp.change_resource(loaded, "stamina", -2, "Loss", self.fixed_clock)
+        event = lp.change_resource(loaded, "STAMINA", 2, "Recovery", self.fixed_clock)
+
+        self.assertEqual(event["data"]["name"], "Stamina")
+        self.assertEqual(loaded.state["resources"]["Stamina"]["current"], 6)
+        for delta, message in ((1, "outside 0/6"), (-7, "outside 0/6")):
+            with self.subTest(delta=delta):
+                with self.assertRaisesRegex(lp.HarnessError, message):
+                    lp.change_resource(loaded, "Stamina", delta, "Invalid", self.fixed_clock)
+
+    def test_pressure_saturates_positive_delta_and_rejects_underflow(self) -> None:
+        loaded = self.start()
+        event = lp.change_pressure(loaded, 7, "Disturbance", self.fixed_clock)
+
+        self.assertEqual(event["data"]["before"], 0)
+        self.assertEqual(event["data"]["after"], 5)
+        self.assertEqual(event["data"]["requested_delta"], 7)
+        self.assertEqual(event["data"]["applied_delta"], 5)
+        with self.assertRaisesRegex(lp.HarnessError, "below 0"):
+            lp.change_pressure(loaded, -6, "Invalid", self.fixed_clock)
+
+    def test_collection_actions_distinguish_consuming_removing_and_duplicates(self) -> None:
+        loaded = self.start()
+        added = lp.change_collection(
+            loaded, "possessions", "add", "Guard's spear", "Taken", clock=self.fixed_clock
+        )
+        with self.assertRaisesRegex(lp.HarnessError, "already present"):
+            lp.change_collection(
+                loaded, "possessions", "add", "guard's SPEAR", "Duplicate", clock=self.fixed_clock
+            )
+        duplicate = lp.change_collection(
+            loaded,
+            "possessions",
+            "add",
+            "guard's SPEAR",
+            "Explicit duplicate",
+            allow_duplicate=True,
+            clock=self.fixed_clock,
+        )
+        consumed = lp.change_collection(
+            loaded, "possessions", "consume", "GUARD'S SPEAR", "Used", clock=self.fixed_clock
+        )
+        removed = lp.change_collection(
+            loaded, "possessions", "remove", "guard's spear", "Discarded", clock=self.fixed_clock
+        )
+
+        self.assertEqual(added["data"]["action"], "add")
+        self.assertFalse(added["data"]["allow_duplicate"])
+        self.assertTrue(duplicate["data"]["allow_duplicate"])
+        self.assertEqual(consumed["data"]["action"], "consume")
+        self.assertEqual(removed["data"]["action"], "remove")
+        self.assertNotIn("Guard's spear", loaded.state["possessions"])
+        with self.assertRaisesRegex(lp.HarnessError, "not present"):
+            lp.change_collection(
+                loaded, "possessions", "consume", "missing", "Invalid", clock=self.fixed_clock
+            )
+        with self.assertRaisesRegex(lp.HarnessError, "not present"):
+            lp.change_collection(
+                loaded, "story_marks", "remove", "missing", "Invalid", clock=self.fixed_clock
+            )
+
+    def test_invalid_changes_leave_files_unchanged(self) -> None:
+        loaded = self.start()
+        before = (
+            (loaded.directory / "events.jsonl").read_bytes(),
+            (loaded.directory / "session.json").read_bytes(),
+        )
+        invalid_calls = (
+            lambda: lp.change_resource(loaded, "Stamina", -7, "Invalid", self.fixed_clock),
+            lambda: lp.change_resource(loaded, "Unknown", 1, "Invalid", self.fixed_clock),
+            lambda: lp.change_resource(loaded, "Stamina", -1, " ", self.fixed_clock),
+            lambda: lp.change_pressure(loaded, -1, "Invalid", self.fixed_clock),
+            lambda: lp.change_pressure(loaded, 1, " ", self.fixed_clock),
+            lambda: lp.change_collection(loaded, "inventory", "add", "Thing", "Invalid", clock=self.fixed_clock),
+            lambda: lp.change_collection(loaded, "possessions", "drop", "Thing", "Invalid", clock=self.fixed_clock),
+            lambda: lp.change_collection(loaded, "possessions", "add", " ", "Invalid", clock=self.fixed_clock),
+            lambda: lp.change_collection(loaded, "possessions", "add", "Thing", " ", clock=self.fixed_clock),
+        )
+        for invalid_call in invalid_calls:
+            with self.subTest(invalid_call=invalid_call):
+                with self.assertRaises(lp.HarnessError):
+                    invalid_call()
+                self.assertEqual(
+                    (
+                        (loaded.directory / "events.jsonl").read_bytes(),
+                        (loaded.directory / "session.json").read_bytes(),
+                    ),
+                    before,
+                )
+
+
+class LifecycleAndCorrectionTests(HarnessTestCase):
+    def test_pause_resume_replays_equivalently(self) -> None:
+        loaded = self.start()
+        lp.pause_session(loaded, "Voice break", self.fixed_clock)
+        self.assertEqual(loaded.state["status"], "paused")
+
+        reloaded = lp.load_session(self.root / "sessions", "test-session")
+        lp.resume_session(reloaded, self.fixed_clock)
+
+        self.assertEqual(reloaded.state["status"], "active")
+        self.assertEqual(lp.replay_events(reloaded.events)["state"], reloaded.state)
+
+    def test_resume_rechecks_reader_hashes_before_recording(self) -> None:
+        loaded = self.start()
+        lp.pause_session(loaded, "Voice break", self.fixed_clock)
+        self.story.write_text("## S01 — Changed\n", encoding="utf-8")
+        before = (loaded.directory / "events.jsonl").read_bytes()
+
+        with self.assertRaisesRegex(lp.HarnessError, "reader file changed: story"):
+            lp.resume_session(loaded, self.fixed_clock)
+
+        self.assertEqual((loaded.directory / "events.jsonl").read_bytes(), before)
+
+    def test_lifecycle_transition_rules_and_finished_read_only_access(self) -> None:
+        loaded = self.start()
+        with self.assertRaisesRegex(lp.HarnessError, "cannot resume"):
+            lp.resume_session(loaded, self.fixed_clock)
+        with self.assertRaisesRegex(lp.HarnessError, "outcome must be non-empty"):
+            lp.finish_session(loaded, " ", self.fixed_clock)
+        lp.pause_session(loaded, "Break", self.fixed_clock)
+        with self.assertRaisesRegex(lp.HarnessError, "cannot pause"):
+            lp.pause_session(loaded, "Again", self.fixed_clock)
+        with self.assertRaisesRegex(lp.HarnessError, "cannot finish"):
+            lp.finish_session(loaded, "Too early", self.fixed_clock)
+        lp.resume_session(lp.load_session(self.root / "sessions", "test-session"), self.fixed_clock)
+        reloaded = lp.load_session(self.root / "sessions", "test-session")
+        lp.finish_session(reloaded, "E01 — theft abandoned", self.fixed_clock)
+
+        self.assertEqual(reloaded.state["status"], "finished")
+        self.assertIn("Status: finished", lp.format_state(reloaded.state))
+        with self.assertRaisesRegex(lp.HarnessError, "status is finished"):
+            lp.record_note(reloaded, "player", "One more thought", self.fixed_clock)
+
+    def test_finished_session_is_immutable_for_all_recording_operations(self) -> None:
+        loaded = self.start()
+        lp.finish_session(loaded, "E01 — theft abandoned", self.fixed_clock)
+        before = (
+            (loaded.directory / "events.jsonl").read_bytes(),
+            (loaded.directory / "session.json").read_bytes(),
+        )
+        operations = (
+            lambda: lp.change_resource(loaded, "Stamina", -1, "Late", self.fixed_clock),
+            lambda: lp.change_pressure(loaded, 1, "Late", self.fixed_clock),
+            lambda: lp.change_collection(loaded, "possessions", "add", "Late", "Late", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Late", "annotate", replacement_text="Late", clock=self.fixed_clock),
+            lambda: lp.pause_session(loaded, "Late", self.fixed_clock),
+            lambda: lp.finish_session(loaded, "Late", self.fixed_clock),
+        )
+        for operation in operations:
+            with self.subTest(operation=operation):
+                with self.assertRaisesRegex(lp.HarnessError, "status is finished"):
+                    operation()
+                self.assertEqual(
+                    (
+                        (loaded.directory / "events.jsonl").read_bytes(),
+                        (loaded.directory / "session.json").read_bytes(),
+                    ),
+                    before,
+                )
+
+    def test_correction_preserves_original_and_compensates_state(self) -> None:
+        loaded = self.start()
+        original = lp.change_resource(loaded, "Stamina", -1, "Misheard loss", self.fixed_clock)
+
+        lp.correct_session(
+            loaded,
+            original["number"],
+            "Player said no Stamina loss",
+            "set-resource",
+            name="Stamina",
+            value=6,
+            clock=self.fixed_clock,
+        )
+
+        self.assertEqual(loaded.events[-2]["type"], "resource_changed")
+        self.assertEqual(loaded.events[-2]["data"]["after"], 5)
+        self.assertEqual(loaded.events[-1]["type"], "correction")
+        self.assertEqual(loaded.state["resources"]["Stamina"]["current"], 6)
+        self.assertEqual(loaded.events[-1]["data"]["compensation"], "set Stamina to 6")
+
+    def test_each_correction_contract_changes_only_its_authorized_state(self) -> None:
+        cases = (
+            ("annotate", {"replacement_text": "Correct wording"}, lambda session: (session.state["resources"]["Stamina"]["current"], session.workflow), (6, {"choice": None, "roll": None})),
+            ("set-resource", {"name": "stamina", "value": 4}, lambda session: session.state["resources"]["Stamina"]["current"], 4),
+            ("set-pressure", {"value": 3}, lambda session: session.state["pressure"]["current"], 3),
+            ("add-possession", {"name": "Shield"}, lambda session: session.state["possessions"], ["Sword", "Shield"]),
+            ("remove-possession", {"name": "sword"}, lambda session: session.state["possessions"], []),
+            ("add-mark", {"name": "Saw smoke"}, lambda session: session.state["story_marks"], ["Saw smoke"]),
+            ("remove-mark", {"name": "Saw smoke"}, lambda session: session.state["story_marks"], []),
+            ("set-passage", {"value": "E01"}, lambda session: session.state["current_passage"], "E01"),
+            ("clear-workflow", {}, lambda session: session.workflow, {"choice": None, "roll": None}),
+        )
+        for operation, kwargs, observed, expected in cases:
+            with self.subTest(operation=operation):
+                loaded = self.start(operation.replace("-", "_"))
+                if operation == "remove-mark":
+                    lp.change_collection(loaded, "story_marks", "add", "Saw smoke", "Setup", clock=self.fixed_clock)
+                if operation == "clear-workflow":
+                    lp.record_choice(loaded, "Go on", None, "S02", self.fixed_clock)
+                before_state = json.loads(json.dumps(loaded.state))
+                before_workflow = json.loads(json.dumps(loaded.workflow))
+                event = lp.correct_session(
+                    loaded, 1, "Compensate operator error", operation, clock=self.fixed_clock, **kwargs
+                )
+                self.assertEqual(event["type"], "correction")
+                self.assertEqual(observed(loaded), expected)
+                if operation == "annotate":
+                    self.assertEqual(loaded.state, before_state)
+                    self.assertEqual(loaded.workflow, before_workflow)
+
+    def test_correction_rejects_invalid_target_reason_arguments_and_results_without_mutation(self) -> None:
+        loaded = self.start()
+        before = (
+            (loaded.directory / "events.jsonl").read_bytes(),
+            (loaded.directory / "session.json").read_bytes(),
+        )
+        invalid_calls = (
+            lambda: lp.correct_session(loaded, 99, "Reason", "annotate", replacement_text="Text", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, " ", "annotate", replacement_text="Text", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "unknown", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "annotate", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "set-resource", name="Stamina", value=7, clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "set-pressure", value=-1, clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "add-possession", name="sword", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "remove-possession", name="missing", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "add-mark", name=" ", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "remove-mark", name="missing", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "set-passage", value="S99", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "clear-workflow", name="extra", clock=self.fixed_clock),
+        )
+        for invalid_call in invalid_calls:
+            with self.subTest(invalid_call=invalid_call):
+                with self.assertRaises(lp.HarnessError):
+                    invalid_call()
+                self.assertEqual(
+                    (
+                        (loaded.directory / "events.jsonl").read_bytes(),
+                        (loaded.directory / "session.json").read_bytes(),
+                    ),
+                    before,
+                )
+
+
 class MarkdownIndexTests(HarnessTestCase):
     def test_passage_index_returns_one_bounded_block(self) -> None:
         passages = lp.index_passages(self.story)

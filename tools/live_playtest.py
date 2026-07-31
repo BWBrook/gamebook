@@ -654,6 +654,378 @@ def _require_active(loaded: LoadedSession, operation: str) -> None:
         )
 
 
+def _require_status(
+    loaded: LoadedSession,
+    expected_status: str,
+    operation: str,
+) -> None:
+    status = loaded.state["status"]
+    if status != expected_status:
+        raise HarnessError(
+            f"cannot {operation} while session status is {status}"
+        )
+
+
+def _non_empty_text(value: Any, label: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise HarnessError(f"{label} must be non-empty")
+    return value.strip()
+
+
+def _resource_name(loaded: LoadedSession, requested_name: Any) -> str:
+    cleaned = _non_empty_text(requested_name, "resource name")
+    names = {name.casefold(): name for name in loaded.state["resources"]}
+    try:
+        return names[cleaned.casefold()]
+    except KeyError as error:
+        raise HarnessError(f"unknown resource {requested_name!r}") from error
+
+
+def _collection_item_index(items: Sequence[str], name: str) -> int | None:
+    requested = name.casefold()
+    for index, item in enumerate(items):
+        if item.casefold() == requested:
+            return index
+    return None
+
+
+def change_resource(
+    loaded: LoadedSession,
+    name: str,
+    delta: int,
+    reason: str,
+    clock: Clock = utc_now,
+) -> JSONDict:
+    """Record a bounded resource change as an authoritative event."""
+    _require_active(loaded, "change resource")
+    canonical_name = _resource_name(loaded, name)
+    if type(delta) is not int:
+        raise HarnessError("resource delta must be an integer")
+    _non_empty_text(reason, "resource change reason")
+    resource = loaded.state["resources"][canonical_name]
+    current = resource["current"]
+    maximum = resource["maximum"]
+    after = current + delta
+    if not 0 <= after <= maximum:
+        raise HarnessError(
+            f"resource {canonical_name} change result {after} is outside 0/{maximum}"
+        )
+    state = copy.deepcopy(loaded.state)
+    state["resources"][canonical_name]["current"] = after
+    return append_event(
+        loaded,
+        "resource_changed",
+        {
+            "name": canonical_name,
+            "delta": delta,
+            "before": current,
+            "after": after,
+            "reason": reason,
+        },
+        state,
+        loaded.workflow,
+        clock,
+    )
+
+
+def change_pressure(
+    loaded: LoadedSession,
+    delta: int,
+    reason: str,
+    clock: Clock = utc_now,
+) -> JSONDict:
+    """Record a bounded pressure change, saturating positive increases."""
+    _require_active(loaded, "change pressure")
+    if type(delta) is not int:
+        raise HarnessError("pressure delta must be an integer")
+    _non_empty_text(reason, "pressure change reason")
+    pressure = loaded.state["pressure"]
+    current = pressure["current"]
+    maximum = pressure["maximum"]
+    requested_after = current + delta
+    if requested_after < 0:
+        raise HarnessError("pressure change result is below 0")
+    after = min(maximum, requested_after)
+    applied_delta = after - current
+    state = copy.deepcopy(loaded.state)
+    state["pressure"]["current"] = after
+    return append_event(
+        loaded,
+        "pressure_changed",
+        {
+            "name": pressure["name"],
+            "requested_delta": delta,
+            "applied_delta": applied_delta,
+            "before": current,
+            "after": after,
+            "reason": reason,
+        },
+        state,
+        loaded.workflow,
+        clock,
+    )
+
+
+def change_collection(
+    loaded: LoadedSession,
+    collection: str,
+    action: str,
+    name: str,
+    reason: str,
+    *,
+    allow_duplicate: bool = False,
+    clock: Clock = utc_now,
+) -> JSONDict:
+    """Record an ordered possession or story-mark change without rewriting history."""
+    _require_active(loaded, "change collection")
+    if collection not in {"possessions", "story_marks"}:
+        raise HarnessError(f"unknown collection {collection!r}")
+    if action not in {"add", "consume", "remove"}:
+        raise HarnessError(f"unknown collection action {action!r}")
+    cleaned_name = _non_empty_text(name, "collection item name")
+    _non_empty_text(reason, "collection change reason")
+    if type(allow_duplicate) is not bool:
+        raise HarnessError("allow_duplicate must be a boolean")
+    items = loaded.state[collection]
+    matching_index = _collection_item_index(items, cleaned_name)
+    if action == "add":
+        if matching_index is not None and not allow_duplicate:
+            raise HarnessError(f"{collection[:-1]} {cleaned_name!r} is already present")
+    elif matching_index is None:
+        raise HarnessError(f"{collection[:-1]} {cleaned_name!r} is not present")
+
+    state = copy.deepcopy(loaded.state)
+    updated_items = state[collection]
+    if action == "add":
+        updated_items.append(cleaned_name)
+    else:
+        assert matching_index is not None
+        del updated_items[matching_index]
+    event_type = "possession_changed" if collection == "possessions" else "story_mark_changed"
+    return append_event(
+        loaded,
+        event_type,
+        {
+            "action": action,
+            "name": cleaned_name,
+            "reason": reason,
+            "allow_duplicate": allow_duplicate,
+        },
+        state,
+        loaded.workflow,
+        clock,
+    )
+
+
+def pause_session(
+    loaded: LoadedSession,
+    reason: str,
+    clock: Clock = utc_now,
+) -> JSONDict:
+    _require_active(loaded, "pause")
+    _non_empty_text(reason, "pause reason")
+    state = copy.deepcopy(loaded.state)
+    state["status"] = "paused"
+    return append_event(
+        loaded,
+        "session_paused",
+        {"reason": reason},
+        state,
+        loaded.workflow,
+        clock,
+    )
+
+
+def resume_session(
+    loaded: LoadedSession,
+    clock: Clock = utc_now,
+) -> JSONDict:
+    """Resume a freshly verified paused session, rechecking reader hashes."""
+    _require_status(loaded, "paused", "resume")
+    session_id = loaded.document.get("session_id")
+    if not isinstance(session_id, str):
+        raise HarnessError("session cache has invalid session identifier")
+    verified = load_session(loaded.directory.parent, session_id)
+    if (
+        verified.document != loaded.document
+        or verified.events != loaded.events
+        or verified.state != loaded.state
+        or verified.workflow != loaded.workflow
+    ):
+        raise HarnessError("session must be freshly verified before resuming")
+    state = copy.deepcopy(loaded.state)
+    state["status"] = "active"
+    return append_event(
+        loaded,
+        "session_resumed",
+        {},
+        state,
+        loaded.workflow,
+        clock,
+    )
+
+
+def finish_session(
+    loaded: LoadedSession,
+    outcome: str,
+    clock: Clock = utc_now,
+) -> JSONDict:
+    _require_active(loaded, "finish")
+    _non_empty_text(outcome, "outcome")
+    state = copy.deepcopy(loaded.state)
+    state["status"] = "finished"
+    return append_event(
+        loaded,
+        "session_finished",
+        {"outcome": outcome},
+        state,
+        loaded.workflow,
+        clock,
+    )
+
+
+def _correction_arguments(
+    *,
+    name: str | None,
+    value: Any,
+    replacement_text: str | None,
+) -> JSONDict:
+    return {
+        key: argument
+        for key, argument in (
+            ("name", name),
+            ("value", value),
+            ("replacement_text", replacement_text),
+        )
+        if argument is not None
+    }
+
+
+def _require_no_correction_extras(
+    *,
+    name: str | None,
+    value: Any,
+    replacement_text: str | None,
+) -> None:
+    if name is not None or value is not None or replacement_text is not None:
+        raise HarnessError("correction operation received unsupported arguments")
+
+
+def correct_session(
+    loaded: LoadedSession,
+    target_event: int,
+    reason: str,
+    operation: str,
+    *,
+    name: str | None = None,
+    value: Any = None,
+    replacement_text: str | None = None,
+    clock: Clock = utc_now,
+) -> JSONDict:
+    """Append a compensating correction while preserving every earlier event."""
+    _require_active(loaded, "correct session")
+    if type(target_event) is not int or not any(
+        event["number"] == target_event for event in loaded.events
+    ):
+        raise HarnessError(f"correction target event {target_event!r} does not exist")
+    _non_empty_text(reason, "correction reason")
+    if operation not in {
+        "annotate",
+        "set-resource",
+        "set-pressure",
+        "add-possession",
+        "remove-possession",
+        "add-mark",
+        "remove-mark",
+        "set-passage",
+        "clear-workflow",
+    }:
+        raise HarnessError(f"unknown correction operation {operation!r}")
+
+    state = copy.deepcopy(loaded.state)
+    workflow = copy.deepcopy(loaded.workflow)
+    arguments = _correction_arguments(
+        name=name,
+        value=value,
+        replacement_text=replacement_text,
+    )
+    if operation == "annotate":
+        replacement = _non_empty_text(replacement_text, "replacement text")
+        if name is not None or value is not None:
+            raise HarnessError("annotate correction received unsupported arguments")
+        compensation = "recorded corrected wording"
+    elif operation == "set-resource":
+        if replacement_text is not None:
+            raise HarnessError("set-resource correction received unsupported arguments")
+        canonical_name = _resource_name(loaded, name)
+        resource = state["resources"][canonical_name]
+        if type(value) is not int or not 0 <= value <= resource["maximum"]:
+            raise HarnessError(
+                f"resource {canonical_name} correction value is outside 0/{resource['maximum']}"
+            )
+        state["resources"][canonical_name]["current"] = value
+        arguments["name"] = canonical_name
+        compensation = f"set {canonical_name} to {value}"
+    elif operation == "set-pressure":
+        if name is not None or replacement_text is not None:
+            raise HarnessError("set-pressure correction received unsupported arguments")
+        maximum = state["pressure"]["maximum"]
+        if type(value) is not int or not 0 <= value <= maximum:
+            raise HarnessError(f"pressure correction value is outside 0/{maximum}")
+        state["pressure"]["current"] = value
+        compensation = f"set {state['pressure']['name']} to {value}"
+    elif operation in {"add-possession", "remove-possession", "add-mark", "remove-mark"}:
+        if value is not None or replacement_text is not None:
+            raise HarnessError(f"{operation} correction received unsupported arguments")
+        cleaned_name = _non_empty_text(name, "collection item name")
+        collection = "possessions" if operation.endswith("possession") else "story_marks"
+        item_index = _collection_item_index(state[collection], cleaned_name)
+        adding = operation.startswith("add-")
+        if adding:
+            if item_index is not None:
+                raise HarnessError(f"{collection[:-1]} {cleaned_name!r} is already present")
+            state[collection].append(cleaned_name)
+            compensation = f"added {cleaned_name} to {collection}"
+        else:
+            if item_index is None:
+                raise HarnessError(f"{collection[:-1]} {cleaned_name!r} is not present")
+            del state[collection][item_index]
+            compensation = f"removed {cleaned_name} from {collection}"
+    elif operation == "set-passage":
+        if name is not None or replacement_text is not None:
+            raise HarnessError("set-passage correction received unsupported arguments")
+        if not isinstance(value, str):
+            raise HarnessError("passage correction value must be a passage identifier")
+        passages = index_passages(_reader_path(loaded, "story"))
+        if value not in passages:
+            raise HarnessError(f"undefined passage {value}")
+        state["current_passage"] = value
+        compensation = f"set current passage to {value}"
+    else:
+        _require_no_correction_extras(
+            name=name,
+            value=value,
+            replacement_text=replacement_text,
+        )
+        workflow = {"choice": None, "roll": None}
+        compensation = "cleared pending choice and roll workflow"
+
+    return append_event(
+        loaded,
+        "correction",
+        {
+            "target_event": target_event,
+            "reason": reason,
+            "operation": operation,
+            "arguments": arguments,
+            "compensation": compensation,
+        },
+        state,
+        workflow,
+        clock,
+    )
+
+
 def _reader_path(loaded: LoadedSession, label: str) -> Path:
     return Path(loaded.document["reader_files"][label]["path"])
 
