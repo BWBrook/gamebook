@@ -1129,6 +1129,172 @@ class CliTests(HarnessTestCase):
         self.assertEqual(stderr, "")
         self.assertEqual(Path(stdout.strip()), self.root / "sessions" / "cli-session" / "report.md")
 
+    def test_every_correction_option_maps_to_its_operation_and_state(self) -> None:
+        def expected_state(
+            *,
+            stamina: int = 6,
+            pressure: int = 0,
+            possessions: list[str] | None = None,
+            marks: list[str] | None = None,
+            passage: str = "S01",
+        ) -> dict[str, object]:
+            return {
+                "attributes": {"BRN": 13, "AGI": 12, "CUN": 12, "WIL": 12},
+                "resources": {
+                    "Fortune": {"current": 10, "maximum": 10},
+                    "Stamina": {"current": stamina, "maximum": 6},
+                },
+                "pressure": {"name": "Exposure", "current": pressure, "maximum": 5},
+                "possessions": ["Sword"] if possessions is None else possessions,
+                "story_marks": [] if marks is None else marks,
+                "current_passage": passage,
+                "status": "active",
+            }
+
+        cases = (
+            (
+                "annotate",
+                (),
+                False,
+                ("--annotate", "Corrected wording"),
+                "annotate",
+                {"replacement_text": "Corrected wording"},
+                expected_state(),
+                {"choice": None, "roll": None},
+            ),
+            (
+                "set-resource",
+                (),
+                False,
+                ("--set-resource", "Stamina=4"),
+                "set-resource",
+                {"name": "Stamina", "value": 4},
+                expected_state(stamina=4),
+                {"choice": None, "roll": None},
+            ),
+            (
+                "set-pressure",
+                (),
+                False,
+                ("--set-pressure", "3"),
+                "set-pressure",
+                {"value": 3},
+                expected_state(pressure=3),
+                {"choice": None, "roll": None},
+            ),
+            (
+                "add-possession",
+                (),
+                False,
+                ("--add-possession", "Shield"),
+                "add-possession",
+                {"name": "Shield"},
+                expected_state(possessions=["Sword", "Shield"]),
+                {"choice": None, "roll": None},
+            ),
+            (
+                "remove-possession",
+                (),
+                False,
+                ("--remove-possession", "Sword"),
+                "remove-possession",
+                {"name": "Sword"},
+                expected_state(possessions=[]),
+                {"choice": None, "roll": None},
+            ),
+            (
+                "add-mark",
+                (),
+                False,
+                ("--add-mark", "Saw smoke"),
+                "add-mark",
+                {"name": "Saw smoke"},
+                expected_state(marks=["Saw smoke"]),
+                {"choice": None, "roll": None},
+            ),
+            (
+                "remove-mark",
+                ("--mark", "Saw smoke"),
+                False,
+                ("--remove-mark", "Saw smoke"),
+                "remove-mark",
+                {"name": "Saw smoke"},
+                expected_state(),
+                {"choice": None, "roll": None},
+            ),
+            (
+                "set-passage",
+                (),
+                False,
+                ("--set-passage", "S02"),
+                "set-passage",
+                {"value": "S02"},
+                expected_state(passage="S02"),
+                {"choice": None, "roll": None},
+            ),
+            (
+                "clear-workflow",
+                (),
+                True,
+                ("--clear-workflow",),
+                "clear-workflow",
+                {},
+                expected_state(),
+                {"choice": None, "roll": None},
+            ),
+        )
+
+        for (
+            label,
+            start_additions,
+            prepare_choice,
+            option,
+            operation,
+            correction_arguments,
+            expected,
+            workflow,
+        ) in cases:
+            with self.subTest(option=label):
+                session_id = f"correction-{label}"
+                start_arguments = self.start_arguments(session_id)
+                start_arguments.extend(start_additions)
+                status, _, stderr = self.command(*start_arguments)
+                self.assertEqual(status, 0, stderr)
+                if prepare_choice:
+                    status, _, stderr = self.command(
+                        *self.session_arguments(
+                            "choose", session_id, "--text", "Press onward"
+                        )
+                    )
+                    self.assertEqual(status, 0, stderr)
+
+                status, stdout, stderr = self.command(
+                    *self.session_arguments(
+                        "correct",
+                        session_id,
+                        "--target-event",
+                        "1",
+                        "--reason",
+                        "CLI correction",
+                        *option,
+                    )
+                )
+                self.assertEqual(status, 0, stderr)
+                self.assertEqual(stderr, "")
+                payload = json.loads(stdout)
+                event = payload["event"]
+                self.assertEqual(event["type"], "correction")
+                self.assertEqual(event["data"]["target_event"], 1)
+                self.assertEqual(event["data"]["reason"], "CLI correction")
+                self.assertEqual(event["data"]["operation"], operation)
+                self.assertEqual(event["data"]["arguments"], correction_arguments)
+                self.assertEqual(event["after"], {"state": expected, "workflow": workflow})
+                self.assertEqual(payload["state"], expected)
+
+                loaded = lp.load_session(self.root / "sessions", session_id)
+                self.assertEqual(loaded.state, expected)
+                self.assertEqual(loaded.workflow, workflow)
+
     def test_malformed_start_values_are_harness_errors(self) -> None:
         for option, value in (
             ("--attribute", "BRN:not-an-integer"),
