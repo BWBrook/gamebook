@@ -18,10 +18,11 @@ These gamebook rules are adapted from *Sinew & Steel*, a d20 tabletop role-playi
 ### Your Adventure Sheet
 
 The Adventure Sheet is the record of this attempt. Each title supplies a fixed
-protagonist with four broad attributes: Brawn, Agility, Cunning, and Will.
-Brawn covers force and endurance; Agility covers speed and physical precision;
-Cunning covers observation, stealth, and guile; Will covers courage and
-self-command. Capture the listed attribute value as the target for a test.
+protagonist with four broad capabilities. The first covers force and endurance;
+the second, speed and physical precision; the third, observation, stealth, and
+guile; the fourth, courage and self-command. Part II supplies this title's
+names and values for them. Capture the listed capability value as the target
+for a test.
 
 Record changes as soon as a passage prints them. Cross off a spent possession,
 reduce a resource when instructed, and write down a new story mark exactly as
