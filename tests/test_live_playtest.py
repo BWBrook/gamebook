@@ -8,6 +8,75 @@ from pathlib import Path
 from tools import live_playtest as lp
 
 
+class RollMechanicsTests(unittest.TestCase):
+    def test_standard_advantage_and_disadvantage_selection(self) -> None:
+        standard = lp.resolve_roll("CUN", 12, "standard", [15])
+        advantage = lp.resolve_roll("BRN", 13, "advantage", [6, 20])
+        disadvantage = lp.resolve_roll("AGI", 12, "disadvantage", [3, 17])
+
+        self.assertEqual(standard["selected_die"], 15)
+        self.assertEqual(standard["provisional_margin"], -3)
+        self.assertEqual(advantage["selected_die"], 6)
+        self.assertEqual(advantage["selected_index"], 0)
+        self.assertIsNone(advantage["natural"])
+        self.assertEqual(disadvantage["selected_die"], 17)
+
+    def test_tied_die_selection_keeps_the_first_physical_die(self) -> None:
+        result = lp.resolve_roll("BRN", 13, "advantage", [8, 8])
+
+        self.assertEqual(result["selected_die"], 8)
+        self.assertEqual(result["selected_index"], 0)
+
+    def test_only_the_selected_die_can_lock(self) -> None:
+        result = lp.resolve_roll("BRN", 13, "advantage", [6, 20])
+        self.assertIsNone(result["natural"])
+        result = lp.resolve_roll("BRN", 13, "disadvantage", [1, 20])
+        self.assertEqual(result["natural"], 20)
+        self.assertEqual(result["provisional_margin"], -7)
+        self.assertTrue(result["margin_is_resolution_inert"])
+
+    def test_selected_natural_one_is_locked(self) -> None:
+        result = lp.resolve_roll("BRN", 13, "standard", [1])
+
+        self.assertEqual(result["natural"], 1)
+        self.assertEqual(result["final_die"], 1)
+        self.assertEqual(result["final_margin"], 12)
+        self.assertEqual(result["fortune_status"], "forbidden")
+        self.assertTrue(result["success"])
+
+    def test_invalid_face_or_wrong_dice_count_is_rejected(self) -> None:
+        for dice in ([0], [21], [2, 3]):
+            with self.subTest(dice=dice):
+                with self.assertRaises(lp.HarnessError):
+                    lp.resolve_roll("CUN", 12, "standard", dice)
+        with self.assertRaisesRegex(lp.HarnessError, "requires two dice"):
+            lp.resolve_roll("CUN", 12, "advantage", [7])
+
+    def test_fortune_recomputes_without_clamping_final_result(self) -> None:
+        roll = lp.resolve_roll("CUN", 12, "standard", [15])
+        result = lp.apply_fortune(roll, 3, 10)
+        self.assertEqual(result["final_die"], 12)
+        self.assertEqual(result["final_margin"], 0)
+        self.assertTrue(result["success"])
+        self.assertEqual(result["fortune_spent"], 3)
+
+        deepened = lp.apply_fortune(
+            lp.resolve_roll("BRN", 13, "standard", [2]),
+            3,
+            10,
+        )
+        self.assertEqual(deepened["final_die"], -1)
+        self.assertEqual(deepened["final_margin"], 14)
+
+    def test_locked_or_unaffordable_fortune_is_rejected(self) -> None:
+        locked = lp.resolve_roll("BRN", 13, "standard", [20])
+        with self.assertRaisesRegex(lp.HarnessError, "locked natural"):
+            lp.apply_fortune(locked, 1, 10)
+        ordinary = lp.resolve_roll("CUN", 12, "standard", [15])
+        with self.assertRaisesRegex(lp.HarnessError, "only 2 Fortune"):
+            lp.apply_fortune(ordinary, 3, 2)
+
+
 class HarnessTestCase(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary_directory = tempfile.TemporaryDirectory()
@@ -348,3 +417,98 @@ class ObserverOperationTests(HarnessTestCase):
             lp.record_choice(loaded, "Go on", None, "S02", self.fixed_clock)
         with self.assertRaisesRegex(lp.HarnessError, "cannot transition"):
             lp.goto_passage(loaded, "S02", self.fixed_clock)
+
+
+class RollRecordingTests(HarnessTestCase):
+    def _commit_choice(self, loaded: lp.LoadedSession) -> None:
+        lp.record_choice(loaded, "Go on", None, "S02", self.fixed_clock)
+
+    def test_roll_requires_a_committed_choice_and_captures_an_attribute(self) -> None:
+        loaded = self.start()
+        with self.assertRaisesRegex(lp.HarnessError, "committed choice"):
+            lp.record_roll(loaded, "CUN", "standard", [15], self.fixed_clock)
+
+        self._commit_choice(loaded)
+        event = lp.record_roll(loaded, "cun", "standard", [15], self.fixed_clock)
+
+        roll = loaded.workflow["roll"]
+        self.assertEqual(event["type"], "roll_recorded")
+        self.assertEqual(roll["attribute"], "CUN")
+        self.assertEqual(roll["target"], 12)
+        self.assertEqual(roll["choice_event"], 2)
+        self.assertEqual(loaded.state["resources"]["Fortune"]["current"], 10)
+        self.assertEqual(roll["fortune_status"], "pending")
+
+    def test_roll_captures_current_fortune_as_its_target(self) -> None:
+        loaded = self.start()
+        self._commit_choice(loaded)
+
+        lp.record_roll(loaded, "fortune", "standard", [8], self.fixed_clock)
+
+        roll = loaded.workflow["roll"]
+        self.assertEqual(roll["attribute"], "Fortune")
+        self.assertEqual(roll["target"], 10)
+
+    def test_pending_roll_blocks_transition_and_zero_spend_finalises_it(self) -> None:
+        loaded = self.start()
+        self._commit_choice(loaded)
+        lp.record_roll(loaded, "CUN", "standard", [15], self.fixed_clock)
+
+        with self.assertRaisesRegex(lp.HarnessError, "Fortune decision"):
+            lp.goto_passage(loaded, "S02", self.fixed_clock)
+
+        event = lp.record_fortune(loaded, 0, self.fixed_clock)
+        self.assertEqual(event["type"], "fortune_decided")
+        self.assertEqual(loaded.workflow["roll"]["fortune_status"], "decided")
+        self.assertEqual(loaded.workflow["roll"]["fortune_spent"], 0)
+        self.assertEqual(loaded.workflow["roll"]["final_die"], 15)
+        lp.goto_passage(loaded, "S02", self.fixed_clock)
+
+    def test_fortune_decision_deducts_from_current_resource(self) -> None:
+        loaded = self.start()
+        self._commit_choice(loaded)
+        lp.record_roll(loaded, "CUN", "standard", [15], self.fixed_clock)
+
+        lp.record_fortune(loaded, 3, self.fixed_clock)
+
+        self.assertEqual(loaded.state["resources"]["Fortune"]["current"], 7)
+        self.assertEqual(loaded.workflow["roll"]["final_die"], 12)
+        self.assertEqual(loaded.workflow["roll"]["final_margin"], 0)
+
+    def test_locked_roll_is_immediately_final_and_rejects_fortune(self) -> None:
+        loaded = self.start()
+        self._commit_choice(loaded)
+        lp.record_roll(loaded, "BRN", "standard", [1], self.fixed_clock)
+
+        self.assertEqual(loaded.workflow["roll"]["fortune_status"], "forbidden")
+        with self.assertRaisesRegex(lp.HarnessError, "locked natural"):
+            lp.record_fortune(loaded, 0, self.fixed_clock)
+        lp.goto_passage(loaded, "S02", self.fixed_clock)
+
+    def test_second_roll_before_transition_is_rejected(self) -> None:
+        loaded = self.start()
+        self._commit_choice(loaded)
+        lp.record_roll(loaded, "CUN", "standard", [15], self.fixed_clock)
+
+        with self.assertRaisesRegex(lp.HarnessError, "existing roll"):
+            lp.record_roll(loaded, "BRN", "standard", [12], self.fixed_clock)
+
+    def test_invalid_dice_and_fortune_leave_persisted_files_unchanged(self) -> None:
+        loaded = self.start()
+        self._commit_choice(loaded)
+        events_path = loaded.directory / "events.jsonl"
+        cache_path = loaded.directory / "session.json"
+        before_dice = (events_path.read_bytes(), cache_path.read_bytes())
+
+        with self.assertRaises(lp.HarnessError):
+            lp.record_roll(loaded, "CUN", "standard", [21], self.fixed_clock)
+        self.assertEqual((events_path.read_bytes(), cache_path.read_bytes()), before_dice)
+
+        lp.record_roll(loaded, "CUN", "standard", [15], self.fixed_clock)
+        before_fortune = (events_path.read_bytes(), cache_path.read_bytes())
+        with self.assertRaises(lp.HarnessError):
+            lp.record_fortune(loaded, 11, self.fixed_clock)
+        self.assertEqual(
+            (events_path.read_bytes(), cache_path.read_bytes()),
+            before_fortune,
+        )

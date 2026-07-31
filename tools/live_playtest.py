@@ -129,6 +129,76 @@ def parse_named_bound(value: str) -> tuple[str, int, int]:
     return match.group(1).strip(), int(match.group(2)), int(match.group(3))
 
 
+def resolve_roll(
+    attribute: str,
+    target: int,
+    mode: str,
+    dice: Sequence[int],
+) -> JSONDict:
+    """Resolve reported physical d20 faces without generating any randomness."""
+    expected_count = {"standard": 1, "advantage": 2, "disadvantage": 2}
+    if mode not in expected_count:
+        raise HarnessError(f"unknown roll mode {mode!r}")
+    if len(dice) != expected_count[mode]:
+        dice_label = "one die" if expected_count[mode] == 1 else "two dice"
+        raise HarnessError(
+            f"{mode} requires {dice_label}, received {len(dice)}"
+        )
+    if any(type(face) is not int or not 1 <= face <= 20 for face in dice):
+        raise HarnessError(
+            f"d20 faces must be integers from 1 through 20: {list(dice)}"
+        )
+
+    if mode == "advantage":
+        selected_die = min(dice)
+    elif mode == "disadvantage":
+        selected_die = max(dice)
+    else:
+        selected_die = dice[0]
+    selected_index = list(dice).index(selected_die)
+    natural = selected_die if selected_die in {1, 20} else None
+    margin = target - selected_die
+
+    return {
+        "attribute": attribute,
+        "target": target,
+        "mode": mode,
+        "dice": list(dice),
+        "selected_die": selected_die,
+        "selected_index": selected_index,
+        "natural": natural,
+        "provisional_margin": margin,
+        "margin_is_resolution_inert": natural is not None,
+        "fortune_status": "forbidden" if natural is not None else "pending",
+        "fortune_spent": 0 if natural is not None else None,
+        "final_die": selected_die if natural is not None else None,
+        "final_margin": margin if natural is not None else None,
+        "success": selected_die == 1 if natural is not None else None,
+    }
+
+
+def apply_fortune(roll: JSONDict, spend: int, available_fortune: int) -> JSONDict:
+    """Return an ordinary roll finalised after an explicit Fortune decision."""
+    if type(spend) is not int or spend < 0:
+        raise HarnessError("Fortune spend must be a non-negative integer")
+    if roll.get("natural") is not None or roll.get("fortune_status") == "forbidden":
+        raise HarnessError("cannot spend Fortune on a locked natural")
+    if type(available_fortune) is not int or available_fortune < 0:
+        raise HarnessError("available Fortune must be a non-negative integer")
+    if spend > available_fortune:
+        raise HarnessError(
+            f"cannot spend {spend} Fortune; only {available_fortune} Fortune available"
+        )
+
+    result = copy.deepcopy(roll)
+    result["fortune_status"] = "decided"
+    result["fortune_spent"] = spend
+    result["final_die"] = result["selected_die"] - spend
+    result["final_margin"] = result["target"] - result["final_die"]
+    result["success"] = result["final_die"] <= result["target"]
+    return result
+
+
 def _validated_names(names: Sequence[str], label: str) -> list[str]:
     """Return stripped, case-insensitively unique names."""
     result: list[str] = []
@@ -731,6 +801,105 @@ def record_choice(
             "destination": intended_destination,
         },
         loaded.state,
+        workflow,
+        clock,
+    )
+
+
+def record_roll(
+    loaded: LoadedSession,
+    attribute: str,
+    mode: str,
+    dice: Sequence[int],
+    clock: Clock = utc_now,
+) -> JSONDict:
+    """Record a reported physical roll against its target at this instant."""
+    _require_active(loaded, "record roll")
+    choice = loaded.workflow["choice"]
+    if not isinstance(choice, dict):
+        raise HarnessError("cannot record a roll without a committed choice")
+    if loaded.workflow["roll"] is not None:
+        raise HarnessError("cannot record a roll while an existing roll awaits transition")
+    if not isinstance(attribute, str):
+        raise HarnessError(f"unknown roll attribute {attribute!r}")
+
+    requested_name = attribute.casefold()
+    attributes = loaded.state["attributes"]
+    attribute_names = {
+        name.casefold(): name
+        for name in attributes
+    }
+    resource_names = {
+        name.casefold(): name
+        for name in loaded.state["resources"]
+    }
+    if requested_name == "fortune":
+        canonical_name = "Fortune"
+        target = loaded.state["resources"][canonical_name]["current"]
+    elif requested_name in attribute_names:
+        canonical_name = attribute_names[requested_name]
+        target = attributes[canonical_name]
+    elif requested_name in resource_names:
+        raise HarnessError(
+            f"resource {resource_names[requested_name]!r} cannot be a roll target"
+        )
+    else:
+        raise HarnessError(f"unknown roll attribute {attribute!r}")
+
+    roll = resolve_roll(canonical_name, target, mode, dice)
+    roll["choice_event"] = choice.get("event")
+    workflow = copy.deepcopy(loaded.workflow)
+    workflow["roll"] = copy.deepcopy(roll)
+    return append_event(
+        loaded,
+        "roll_recorded",
+        {"roll": roll},
+        loaded.state,
+        workflow,
+        clock,
+    )
+
+
+def record_fortune(
+    loaded: LoadedSession,
+    spend: int,
+    clock: Clock = utc_now,
+) -> JSONDict:
+    """Finalise the current ordinary roll with an explicit Fortune spend."""
+    _require_active(loaded, "record Fortune decision")
+    roll = loaded.workflow["roll"]
+    if not isinstance(roll, dict):
+        raise HarnessError("cannot decide Fortune without a pending ordinary roll")
+    if roll.get("fortune_status") == "forbidden":
+        raise HarnessError("cannot spend Fortune on a locked natural")
+    if roll.get("fortune_status") != "pending":
+        raise HarnessError("cannot decide Fortune without a pending ordinary roll")
+
+    fortune = loaded.state["resources"].get("Fortune")
+    if not isinstance(fortune, dict):
+        raise HarnessError("Fortune resource is invalid")
+    current = fortune.get("current")
+    maximum = fortune.get("maximum")
+    if (
+        type(current) is not int
+        or type(maximum) is not int
+        or not 0 <= current <= maximum
+    ):
+        raise HarnessError("Fortune resource is invalid")
+
+    final_roll = apply_fortune(roll, spend, current)
+    new_current = current - spend
+    if type(new_current) is not int or not 0 <= new_current <= maximum:
+        raise HarnessError("Fortune resource is invalid")
+    state = copy.deepcopy(loaded.state)
+    state["resources"]["Fortune"]["current"] = new_current
+    workflow = copy.deepcopy(loaded.workflow)
+    workflow["roll"] = copy.deepcopy(final_roll)
+    return append_event(
+        loaded,
+        "fortune_decided",
+        {"spend": spend, "roll": final_roll},
+        state,
         workflow,
         clock,
     )
