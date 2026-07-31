@@ -17,7 +17,7 @@ These gamebook rules are adapted from *Sinew & Steel*, a d20 tabletop role-playi
 
 ### Your Adventure Sheet
 
-The Adventure Sheet is the record of this attempt. Its title gives you a fixed
+The Adventure Sheet is the record of this attempt. Each title supplies a fixed
 protagonist with four broad attributes: Brawn, Agility, Cunning, and Will.
 Brawn covers force and endurance; Agility covers speed and physical precision;
 Cunning covers observation, stealth, and guile; Will covers courage and
@@ -73,9 +73,11 @@ results are decided before Fortune is used; record the consequence given.
 
 ### Margin and Fortune
 
-For an ordinary selected die, margin is the captured target minus the selected
-die. A target of 12 and a die of 9 gives margin 3; a die of 15 gives margin
--3. Margin has no independent effect unless the passage explicitly reads it.
+Margin is the captured target minus the selected die. A target of 12 and a die
+of 9 gives margin 3; a die of 15 gives margin -3. A selected natural also has
+a margin, but it is resolution-inert because the natural result is locked.
+Margin otherwise has no independent effect unless the passage explicitly reads
+it.
 
 After seeing an ordinary selected die, you may spend Fortune to lower it. Each
 point spent lowers the die by one. Recalculate the final margin, resolve the
