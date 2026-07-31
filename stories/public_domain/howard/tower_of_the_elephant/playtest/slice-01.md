@@ -64,7 +64,7 @@ moving behind the leaves.
 The unknown mover is still near. You have time to take one useful thing from
 the dead man, no more. Choose exactly one discovery; do not record both.
 
-- Take up the source-backed weapon lying beside the body. Add **Guard's
+- Take up the guard's spear lying beside the body. Add **Guard's
   spear** to your Possessions. Its shaft is long enough to brace against a
   charging beast. Turn to **S05**.
 
@@ -275,7 +275,7 @@ to 5 while you remain alive.
 
 | Method | Availability and roll | Clean success | Ordinary failure | Natural 1 | Natural 20 |
 | --- | --- | --- | --- | --- | --- |
-| Brace the guard's spear | Requires **Guard's spear**. Cross it off before rolling. Roll **BRN 13 with Advantage**: two d20s, keep the lower. | The lion dies cleanly; turn to **S12**. | Lose **2 Stamina**, add **1 Exposure**, then turn to **S13** if no crisis intervenes. | You kill it before it can make a sound; turn to **S12**. | The lion kills you; turn to **E03**. |
+| Brace the guard's spear | Requires **Guard's spear**. Cross it off before rolling: the brace commits the weapon to the collision, where the shaft will break or the head lodge beyond recovery. Roll **BRN 13 with Advantage**: two d20s, keep the lower. | The lion dies cleanly; turn to **S12**. | Lose **2 Stamina**, add **1 Exposure**, then turn to **S13** if no crisis intervenes. | You kill it before it can make a sound; turn to **S12**. | The lion kills you; turn to **E03**. |
 | Wheel beneath the leap | Always available. Use your Sword. Roll **BRN 13**, one d20. | The lion dies cleanly; turn to **S12**. | Lose **2 Stamina**, add **1 Exposure**, then turn to **S13** if no crisis intervenes. | You split its skull cleanly; turn to **S12**. | The lion kills you; turn to **E03**. |
 | Slip aside and cut as it passes | Always available. Use your Sword. Roll **AGI 12**, one d20. | The lion dies cleanly; turn to **S12**. | Lose **1 Stamina**, add **2 Exposure**, then turn to **S13** if no crisis intervenes. | You turn its own speed against it; turn to **S12**. | The lion kills you; turn to **E03**. |
 
@@ -302,8 +302,10 @@ breaks through the confidence of the prince of thieves. He has seen nimble
 killers in every thieves' quarter of Zamora and beyond, yet the speed of this
 touch-and-go slaying leaves him briefly without words.
 
-You wrench your weapon free. If you used the Sword, you cleanse its blade on
-the grass. You have taken no Stamina or Exposure cost from this exchange.
+You step clear of the carcass. If you braced the guard's spear, its shaft lies
+broken or its head remains buried past recovery; leave it where it fell. If
+you used the Sword, you wrench the blade free and cleanse it on the grass. You
+have taken no Stamina or Exposure cost from this exchange.
 
 Give Taurus room to finish the cast. Turn to **S14**.
 
@@ -319,8 +321,11 @@ method; do not apply it a second time here. Confirm the result before
 continuing. If your Stamina is 0, turn immediately to **E03**. If you remain
 alive but your Exposure is 5, turn immediately to **E02**.
 
-With Stamina above 0 and Exposure below 5, keep your weapon in hand and give
-Taurus room to cast. Turn to **S14**.
+At Exposure 3, movement below shows that the watch is uneasy. At Exposure 4,
+a search is beginning, and you and Taurus must advance immediately.
+
+With Stamina above 0 and Exposure below 5, ready your Sword and give Taurus
+room to cast. Turn to **S14**.
 
 ## S14 — The Rope Holds
 
