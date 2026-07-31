@@ -1,31 +1,33 @@
 # Gamebook Player Primer Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox syntax for tracking.
 
 **Goal:** Turn the approved player-primer design into self-contained, publishable Tower front matter that teaches a new reader everything needed before S01, with a modular Adventure Sheet and a primer-first live-calibration protocol.
 
-**Architecture:** Keep one authoritative Tower rules document. Its four unique H2 sections form the facilitator lookup boundary; H3 subsections carry the detailed teaching. Keep the writable sheet separate, change only the story preamble before S01, and verify the reader-facing contract with standard-library tests. The thin observer harness remains mechanically unchanged and merely presents the new sections in order.
+**Architecture:** Keep one authoritative Tower rules document. Its four unique H2 sections form the facilitator lookup boundary; H3 subsections carry the detailed teaching. Keep the writable sheet separate, change only the story preamble before S01, and verify software-consumed boundaries with standard-library integration tests. Validate human-facing prose through a focused editorial review and the subsequent live calibration.
 
-**Tech Stack:** Markdown, Python 3.10+ standard-library `unittest`, the existing `tools/live_playtest.py` APIs, Git.
+**Tech Stack:** Markdown, Python 3.10+ standard-library unittest, the existing tools/live_playtest.py APIs, Git.
+
+**Execution ruling:** Before implementation, the user selected the behavioural-hybrid test boundary. Permanent tests cover harness-consumed rules structure, reader-link resolution, and the protected S01 byte range. Exact prose, editorial length, atmosphere, clarity, and instructional completeness are reviewed directly and then tested with the user in tower-calibration-02; they are not frozen with source-text assertions.
 
 ## Global Constraints
 
-- Implement the approved specification in `docs/superpowers/specs/2026-07-31-gamebook-player-primer-design.md`.
-- Work from approved base commit `c27a3f616395a3305b13a53ba24efc4dc71021a8` or its reviewed descendant.
-- Keep `stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md` as the single authoritative Tower primer. Do not introduce includes, templates, generated copies, or a generic rules source.
-- Use exactly these unique H2 headings, in this order, because the observer indexes H2 blocks for `lookup`: `Before You Begin`, `Part I: How to Play`, `Part II: Rules for This Adventure`, `Rules at a Glance`. Use H3 or lower for every internal subsection.
-- Keep all reader-facing mechanics self-contained. Knowledge of the full *Sinew & Steel* rules must never be required.
+- Implement the approved specification in docs/superpowers/specs/2026-07-31-gamebook-player-primer-design.md, subject to the behavioural-hybrid testing ruling above.
+- Work from approved base commit b6d60c021372aea4526a218e46ca9fc64af17946 or its reviewed descendant.
+- Keep stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md as the single authoritative Tower primer. Do not introduce includes, templates, generated copies, or a generic rules source.
+- Use exactly these unique H2 headings, in this order, because the observer indexes H2 blocks for lookup: Before You Begin; Part I: How to Play; Part II: Rules for This Adventure; Rules at a Glance. Use H3 or lower for every internal subsection.
+- Keep all reader-facing mechanics self-contained. Knowledge of the full Sinew & Steel rules must never be required.
 - Keep the instructional prose original. Borrow the established function of self-contained gamebook rules and a writable record sheet, but do not copy proprietary wording, examples, tables, or distinctive layouts.
-- Retain the four capability meanings and the selected Tower labels consistently: Brawn (`BRN`) 13, Agility (`AGI`) 12, Cunning (`CUN`) 12, Will (`WIL`) 12.
+- Retain the four capability meanings and the selected Tower labels consistently: Brawn (BRN) 13, Agility (AGI) 12, Cunning (CUN) 12, Will (WIL) 12.
 - Keep the approved fixed starting state: Fortune 10/10, Stamina 6/6, Exposure 0/5, Sword, and no starting story marks.
 - Keep Exposure inside the Tower-specific module. It is the title's only primary story track and must be fully explained before S01.
-- Do not modify `tools/live_playtest.py`, dependency files, build tooling, publishing infrastructure, or `README.md`.
-- Do not change numbered passage prose, choices, destinations, identifiers, or edges. The SHA-256 of `slice-01.md` from the first `## S01` byte through EOF must remain `2f4926bbc3fef29a3db0d6aa4087c0d6a3c33f322f5b41896333ccb3bafc8496`.
-- Keep local session material under `.playtest/` ignored and untracked. Preserve `tower-calibration-01`; do not start `tower-calibration-02` during implementation.
-- Aim for 1,800–2,000 reader-facing words across `quick-rules.md` and `adventure-sheet.md`, excluding Markdown link destinations, HTML comments, box glyphs, and writable blank lines.
-- Use test-driven development for changed behaviour: add each focused contract test, observe the intended failure, make the smallest complete editorial change, then run the focused and full suites. A narrowly scoped characterization test may begin green when it proves compatibility with deliberately unchanged harness code.
-- Commit after each completed task. Do not push implementation commits until the reviewed implementation is accepted for integration.
-- Treat the tracked result as ready for acceptance calibration, not as proof of reader comprehension. Starting the live `tower-calibration-02` session is a separate, user-gated follow-up.
+- Do not modify tools/live_playtest.py, dependency files, build tooling, publishing infrastructure, or README.md.
+- Do not change numbered passage prose, choices, destinations, identifiers, or edges. The SHA-256 of slice-01.md from the first UTF-8 byte of the S01 heading through EOF must remain 2f4926bbc3fef29a3db0d6aa4087c0d6a3c33f322f5b41896333ccb3bafc8496.
+- Keep local session material under .playtest/ ignored and untracked. Preserve tower-calibration-01; do not start tower-calibration-02 during implementation.
+- Aim for 1,800–2,000 reader-facing words across quick-rules.md and adventure-sheet.md, excluding Markdown link destinations, HTML comments, box glyphs, and writable blank lines.
+- Use TDD for new executable behavior. For human-facing prose, follow the user's behavioural-hybrid ruling: run existing regressions and behavioural characterizations, then use editorial and live acceptance rather than source-text unit tests.
+- Commit after each completed task. Do not push implementation commits until the reviewed branch is accepted for integration.
+- Treat the tracked result as ready for acceptance calibration, not as proof of reader comprehension. Starting tower-calibration-02 is a separate, user-gated follow-up.
 
 ---
 
@@ -33,187 +35,31 @@
 
 **Files:**
 
-- Create: `tests/test_player_primer.py`
-- Modify: `stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md`
-- Test: `tests/test_player_primer.py`
+- Modify: stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md
 
-### Step 1: Add the reader-material test helpers
+### Step 1: Record the editorial baseline
 
-- [ ] Create `tests/test_player_primer.py` with this standard-library foundation:
+- [ ] Record the current H2 lookup surface and rules word count in the task report:
 
-```python
-from __future__ import annotations
-
-import hashlib
+~~~bash
+python3 - <<'PY'
 import re
-import unittest
 from pathlib import Path
+from tools import live_playtest as lp
 
+path = Path("stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md")
+print("sections:", list(lp.index_rule_sections(path)))
+print("words:", len(re.findall(r"[A-Za-z0-9]+(?:[’'][A-Za-z0-9]+)*", path.read_text())))
+PY
+~~~
 
-ROOT = Path(__file__).resolve().parents[1]
-TOWER = ROOT / "stories/public_domain/howard/tower_of_the_elephant/playtest"
-RULES = TOWER / "quick-rules.md"
-SHEET = TOWER / "adventure-sheet.md"
-STORY = TOWER / "slice-01.md"
-PROTOCOL = ROOT / "docs/playtesting/live-playtest.md"
-WORD_RE = re.compile(r"[A-Za-z0-9]+(?:[’'][A-Za-z0-9]+)*")
-H2_RE = re.compile(r"^## (?P<title>.+)$", re.MULTILINE)
-S01_HEADING = "## S01 — The Outer Wall"
-NUMBERED_BODY_SHA256 = (
-    "2f4926bbc3fef29a3db0d6aa4087c0d6a3c33f322f5b41896333ccb3bafc8496"
-)
+- [ ] Note in the report that this is editorial work under the approved behavioural-hybrid ruling: no static prose test should be added. The existing suite is the regression baseline.
 
+### Step 2: Rewrite Before You Begin and Part I
 
-def read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
+- [ ] Replace the current reference-style opening with this exact top-level and subsection structure:
 
-
-def h2_headings(text: str) -> list[str]:
-    return [match.group("title") for match in H2_RE.finditer(text)]
-
-
-def h2_section(text: str, heading: str) -> str:
-    matches = list(H2_RE.finditer(text))
-    for index, match in enumerate(matches):
-        if match.group("title") != heading:
-            continue
-        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
-        return text[match.start():end].rstrip() + "\n"
-    raise AssertionError(f"missing H2 section: {heading}")
-
-
-def reader_word_count(*texts: str) -> int:
-    visible = "\n".join(texts)
-    visible = re.sub(r"<!--.*?-->", " ", visible, flags=re.DOTALL)
-    visible = re.sub(r"\[([^]]+)\]\([^)]+\)", r"\1", visible)
-    visible = re.sub(r"https?://\S+", " ", visible)
-    return len(WORD_RE.findall(visible))
-
-
-def normalised_prose(text: str) -> str:
-    return " ".join(text.split())
-
-
-class PlayerPrimerContractTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.rules = read_text(RULES)
-        cls.sheet = read_text(SHEET)
-        cls.story = read_text(STORY)
-        cls.protocol = read_text(PROTOCOL)
-
-    def assert_occurs_in_order(self, text: str, *markers: str) -> None:
-        position = -1
-        for marker in markers:
-            next_position = text.find(marker, position + 1)
-            self.assertNotEqual(next_position, -1, f"missing marker: {marker}")
-            self.assertGreater(next_position, position, f"out-of-order marker: {marker}")
-            position = next_position
-
-    def assert_matches_concepts(self, text: str, *patterns: str) -> None:
-        prose = normalised_prose(text)
-        for pattern in patterns:
-            self.assertRegex(prose, re.compile(pattern, re.IGNORECASE))
-```
-
-### Step 2: Write the failing core-contract tests
-
-- [ ] Add these tests to `PlayerPrimerContractTests`. Keep exact assertions for approved facts and arithmetic; use semantic assertions for prose so later copy-editing remains possible.
-
-```python
-    def test_core_primer_sections_are_unique_and_ordered(self) -> None:
-        self.assertEqual(
-            h2_headings(self.rules),
-            [
-                "Before You Begin",
-                "Part I: How to Play",
-                "Part II: Rules for This Adventure",
-            ],
-        )
-
-    def test_before_you_begin_states_the_self_contained_contract(self) -> None:
-        before = h2_section(self.rules, "Before You Begin")
-        for phrase in [
-            "Adventure Sheet",
-            "*Sinew & Steel*",
-            "Barry W. Brook",
-            "You need no knowledge of that system",
-            "everything required to play appears here",
-        ]:
-            self.assertIn(phrase, before)
-        self.assert_matches_concepts(
-            before,
-            r"pen or pencil",
-            r"one (?:twenty-sided die|d20)",
-            r"(?:optional second d20|second d20.*optional)",
-            r"(?:no character creation|do not create.*character)",
-        )
-
-    def test_part_one_teaches_the_routine_play_loop_in_use_order(self) -> None:
-        core = h2_section(self.rules, "Part I: How to Play")
-        self.assert_occurs_in_order(
-            core,
-            "### Your Adventure Sheet",
-            "### Reading the Adventure",
-            "### When the Story Calls for a Test",
-            "### Advantage and Disadvantage",
-            "### Natural Results",
-            "### Margin and Fortune",
-            "### A Worked Conan Example",
-            "### Stamina, Possessions, and Story Marks",
-            "### Tactical Exchanges and Endings",
-        )
-        self.assert_matches_concepts(
-            core,
-            r"equal to or (?:below|lower than)",
-            r"Advantage.*(?:lower|lowest)",
-            r"Disadvantage.*(?:higher|highest)",
-            r"target\s*-\s*selected die",
-            r"margin.*(?:no|without).*effect.*unless.*passage",
-            r"(?:escape|evasion|withdraw).*only.*passage",
-            r"0 Stamina",
-            r"(?:explicit|printed).*(?:ending|ends|terminal)",
-        )
-
-    def test_part_one_keeps_title_specific_state_out_of_the_core(self) -> None:
-        core = h2_section(self.rules, "Part I: How to Play")
-        self.assertNotIn("BRN 13 | AGI 12", core)
-        self.assertNotIn("Exposure", core)
-
-    def test_worked_conan_example_matches_the_approved_arithmetic(self) -> None:
-        core = h2_section(self.rules, "Part I: How to Play")
-        self.assert_occurs_in_order(
-            core,
-            "target of 12",
-            "selected die is 15",
-            "12 - 15 = -3",
-            "spend 3 Fortune",
-            "final die is 12",
-            "final margin is 0",
-            "Fortune falls from 10 to 7",
-            "Conan succeeds",
-        )
-        self.assertIn("do not mark", core.casefold())
-        self.assertIn("selected natural 20", core)
-        self.assertIn("cannot be changed with Fortune", core)
-
-```
-
-### Step 3: Run the focused tests and confirm RED
-
-- [ ] Run:
-
-```bash
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_player_primer -v
-```
-
-Expected: the new tests fail because the current reference begins with `What you need`, lacks the approved H2 boundary, and does not contain the full worked tutorial. Any import or helper error is a test defect and must be fixed before editing the reader files.
-
-### Step 4: Rewrite Before You Begin and Part I
-
-- [ ] Replace the current reference-style opening with the following exact top-level and subsection structure:
-
-```markdown
+~~~markdown
 # *The Tower of the Elephant* Player's Rules
 
 ## Before You Begin
@@ -239,22 +85,24 @@ Expected: the new tests fail because the current reference begins with `What you
 ### Tactical Exchanges and Endings
 
 ## Part II: Rules for This Adventure
-```
+~~~
 
-- [ ] Write 100–150 words under `Before You Begin`. Include the required equipment and fixed-protagonist contract. Use this approved attribution verbatim:
+- [ ] Write 100–150 words under Before You Begin. State that the reader needs the book, its Adventure Sheet, a pen or pencil, one d20, and optionally a second d20. State that there is no character creation and the book supplies the protagonist and starting state.
 
-```text
-These gamebook rules are adapted from *Sinew & Steel*, a d20 tabletop role-playing game by Barry W. Brook. You need no knowledge of that system; everything required to play appears here.
-```
+- [ ] Include this attribution verbatim, with the title italicised:
 
-- [ ] Write 850–950 words under Part I using the approved purpose → procedure → example → record teaching pattern. Explain how to read the fixed profile supplied by a title, but keep Conan's exact values, Tower labels, and Exposure in Part II. Part I must teach:
+    These gamebook rules are adapted from *Sinew & Steel*, a d20 tabletop role-playing game by Barry W. Brook. You need no knowledge of that system; everything required to play appears here.
 
-  - attributes as the four broad capabilities printed on a supplied protagonist profile, without fixing their title-facing names or values in the reusable core;
+- [ ] Write 850–950 words under Part I using the approved purpose → procedure → example → record teaching pattern. Explain how to read a fixed profile supplied by a title, but keep Conan's exact values, Tower labels, and Exposure in Part II.
+
+- [ ] Teach these portable concepts:
+
+  - four broad attributes and their use as captured targets;
   - passage choices, printed conditions, and immediate state updates;
-  - d20 roll-under tests with an ordinary selected result succeeding at or below the captured target;
+  - d20 roll-under tests, with an ordinary selected result succeeding at or below the captured target;
   - Advantage as two d20s keeping the lower, and Disadvantage as two d20s keeping the higher;
   - selected natural 1 and 20 as locked results before Fortune;
-  - margin as `target - selected die`, with no independent effect unless the passage explicitly reads it;
+  - margin as target minus selected die, with no independent effect unless the passage explicitly reads it;
   - Fortune spending after an ordinary selected die, and Fortune as the captured target when a passage calls for a Fortune test;
   - authored Stamina loss and the passage's explicit instruction at 0 Stamina;
   - possessions and semantic story marks;
@@ -262,30 +110,69 @@ These gamebook rules are adapted from *Sinew & Steel*, a d20 tabletop role-playi
   - escape, evasion, or withdrawal only when printed; and
   - explicit death, withdrawal, crisis, and slice-complete endings.
 
-- [ ] Give the worked example Tower atmosphere without reproducing or foreshadowing a numbered passage. Tell the reader not to mark the real sheet. State the exact arithmetic and resource transition required by the test, then add a one-sentence natural-20 contrast.
+### Step 3: Write the worked Conan example
 
-- [ ] Move the existing Tower-specific material below `## Part II: Rules for This Adventure` and demote its internal headings to H3 as an interim module. Do not add any additional H2 headings. Task 2 will edit and reorganise that module.
+- [ ] Place one non-canonical Conan vignette immediately after tests and Fortune are explained. Give it Tower atmosphere without reproducing or foreshadowing a numbered passage. Tell the reader not to mark the real sheet.
 
-### Step 5: Run focused and regression tests
+- [ ] State this complete loop unambiguously:
+
+  1. the passage gives meaningful stakes;
+  2. Conan chooses a method;
+  3. the captured attribute target is 12;
+  4. the selected ordinary die is 15;
+  5. provisional margin is 12 - 15 = -3;
+  6. the reader spends 3 Fortune;
+  7. final die is 12 and final margin is 0;
+  8. Conan succeeds;
+  9. Fortune falls from 10 to 7; and
+  10. the reader follows the printed success.
+
+- [ ] Add a short contrast: a selected natural 20 is locked and cannot be changed with Fortune.
+
+### Step 4: Preserve the interim title module
+
+- [ ] Move the existing Tower-specific material below Part II and demote every internal heading to H3. Do not add another H2. Task 2 will edit and reorganise this material.
+
+- [ ] Ensure Part I contains neither the exact Conan profile nor Exposure.
+
+### Step 5: Verify the Task 1 boundary
+
+- [ ] Run this production-index check:
+
+~~~bash
+python3 - <<'PY'
+from pathlib import Path
+from tools import live_playtest as lp
+
+path = Path("stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md")
+assert list(lp.index_rule_sections(path)) == [
+    "before you begin",
+    "part i: how to play",
+    "part ii: rules for this adventure",
+]
+print("Task 1 lookup surface: OK")
+PY
+~~~
+
+- [ ] Read Before You Begin and Part I once in order. Confirm every portable concept above is taught, the arithmetic is correct, the example is non-canonical, and the prose is plain, direct, and original.
 
 - [ ] Run:
 
-```bash
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_player_primer -v
+~~~bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py' -v
-```
+git diff --check
+~~~
 
-Expected: all Task 1 tests pass and the existing suite remains `OK`.
+Expected: the lookup check prints OK, the full suite passes, and the diff has no whitespace errors.
 
 ### Step 6: Commit the reusable core
 
-- [ ] Inspect the diff for accidental Tower spoilers or extra H2 headings, then commit:
+- [ ] Commit:
 
-```bash
-git add tests/test_player_primer.py \
-  stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md
+~~~bash
+git add stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md
 git commit -m "docs: teach the reusable gamebook core"
-```
+~~~
 
 ---
 
@@ -293,192 +180,125 @@ git commit -m "docs: teach the reusable gamebook core"
 
 **Files:**
 
-- Modify: `tests/test_player_primer.py`
-- Modify: `stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md`
-- Test: `tests/test_player_primer.py`
+- Modify: stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md
 
-### Step 1: Tighten the four-section contract
+### Step 1: Author the final Tower module
 
-- [ ] Change `test_core_primer_sections_are_unique_and_ordered` to require the final exact list:
+- [ ] Rewrite Part II to 450–550 words with exactly these H3 sections:
 
-```python
-        self.assertEqual(
-            h2_headings(self.rules),
-            [
-                "Before You Begin",
-                "Part I: How to Play",
-                "Part II: Rules for This Adventure",
-                "Rules at a Glance",
-            ],
-        )
-```
+~~~markdown
+### Conan
 
-### Step 2: Add failing Tower-module tests
+### Exposure
 
-- [ ] Add:
+### Injury, Recovery, and Death
 
-```python
-    def test_tower_module_defines_the_fixed_profile_and_labels(self) -> None:
-        tower = h2_section(self.rules, "Part II: Rules for This Adventure")
-        profile = "BRN 13 | AGI 12 | CUN 12 | WIL 12 | FOR 10/10 | STM 6/6"
-        self.assertIn(profile, tower)
-        for name, abbreviation in [
-            ("Brawn", "BRN"),
-            ("Agility", "AGI"),
-            ("Cunning", "CUN"),
-            ("Will", "WIL"),
-        ]:
-            self.assert_matches_concepts(tower, rf"{name}.*\({abbreviation}\)")
-        self.assertIn("Sword", tower)
+### Tactical Exchanges and Crises
 
-    def test_tower_module_defines_the_complete_exposure_scale(self) -> None:
-        tower = h2_section(self.rules, "Part II: Rules for This Adventure")
-        self.assert_matches_concepts(
-            tower,
-            r"Exposure.*start.*0",
-            r"Exposure.*cap.*5",
-            r"another patrol interval",
-            r"call.*loud",
-            r"failed standoff",
-            r"natural 20",
-            r"lion tactic",
-            r"no ordinary event.*lower.*Exposure",
-        )
-        for row in [
-            r"(?mi)^\|\s*0–2\s*\|.*unconfirmed.*all.*choices.*\|$",
-            r"(?mi)^\|\s*3\s*\|.*uneasy.*lingering.*close.*\|$",
-            r"(?mi)^\|\s*4\s*\|.*search.*(?:advance|withdraw).*\|$",
-            r"(?mi)^\|\s*5\s*\|.*discovered.*E02.*\|$",
-        ]:
-            self.assertRegex(tower, row)
-        self.assert_matches_concepts(
-            tower,
-            r"Exposure.*2.*(?:to|→).*3",
-            r"mark.*3",
-            r"watch.*uneasy",
-            r"lingering choices.*close",
-        )
+### Hints for Play
 
-    def test_exposure_is_introduced_only_in_the_tower_module(self) -> None:
-        part_two_start = self.rules.index("## Part II: Rules for This Adventure")
-        first_exposure = self.rules.index("Exposure")
-        self.assertGreaterEqual(first_exposure, part_two_start)
+### Rumours of the Tower
+~~~
 
-    def test_tower_module_covers_recovery_crises_hints_and_rumours(self) -> None:
-        tower = h2_section(self.rules, "Part II: Rules for This Adventure")
-        self.assert_occurs_in_order(
-            tower,
-            "### Conan",
-            "### Exposure",
-            "### Injury, Recovery, and Death",
-            "### Tactical Exchanges and Crises",
-            "### Hints for Play",
-            "### Rumours of the Tower",
-        )
-        self.assert_matches_concepts(
-            tower,
-            r"no Fortune recovery",
-            r"no Stamina recovery",
-            r"resolve.*crisis.*before.*destination",
-            r"read.*available method",
-            r"apply.*printed state changes.*immediate",
-            r"keep.*current passage.*marked",
-        )
+- [ ] Under Conan:
 
-    def test_rules_at_a_glance_covers_flow_and_tower_reminders(self) -> None:
-        glance = h2_section(self.rules, "Rules at a Glance")
-        self.assert_occurs_in_order(
-            glance,
-            "### Core Action Flow",
-            "Read the stakes",
-            "Choose a method",
-            "Capture the target",
-            "Roll and select",
-            "Check natural 1 or natural 20",
-            "target - selected die",
-            "Spend Fortune",
-            "Apply the printed result",
-            "Update the sheet",
-            "### Tower Reminders",
-        )
-        for phrase in [
-            "Fortune test",
-            "captured current Fortune",
-            "0 Stamina",
-            "Exposure",
-            "Possessions",
-            "Story marks",
-            "Tactical exchanges",
-            "crisis",
-        ]:
-            self.assertIn(phrase, glance)
-```
+  - identify the young but seasoned fixed protagonist;
+  - print BRN 13 | AGI 12 | CUN 12 | WIL 12 | FOR 10/10 | STM 6/6;
+  - define Brawn (BRN), Agility (AGI), Cunning (CUN), and Will (WIL);
+  - state Fortune 10, Stamina 6, Exposure 0, Sword, and no starting story marks.
 
-### Step 3: Run the focused tests and confirm RED
+- [ ] Under Exposure:
+
+  - define it before any actionable use;
+  - state that it starts at 0 and is capped at 5;
+  - give visible table rows for 0–2, 3, 4, and 5;
+  - pair each state with its mechanic: 0–2 unconfirmed/all choices; 3 uneasy/lingering closes; 4 search/immediate advance or withdrawal only; 5 discovered/resolve E02;
+  - preserve only the increases already printed in the playable slice: another patrol interval, loud or avoidable disturbance, failed Taurus standoff, natural 20 in that standoff, and the printed lion-tactic amount;
+  - state that no ordinary event lowers Exposure; and
+  - include the micro-example 2 → 3: mark 3, the watch becomes uneasy, and lingering choices begin to close.
+
+- [ ] Under Injury, Recovery, and Death, state authored 1- or 2-point losses, mortal hazards, immediate E03 at 0 Stamina, maxima, and no Fortune, Stamina, or Exposure recovery in this slice.
+
+- [ ] Under Tactical Exchanges and Crises, explain authored tactical choices, consumption timing, and this order: apply printed costs; resolve Stamina 0 or Exposure 5; follow a surviving destination.
+
+- [ ] Hints for Play must advise process only: read every method and stake, mark the current passage, check conditions, update immediately, and trust explicit terminals. Do not identify a safe, efficient, canonical, or optimal route.
+
+- [ ] Rumours of the Tower must provide brief atmospheric orientation from opening knowledge only. Do not reveal unread events, creatures, allies, solutions, or passage outcomes.
+
+### Step 2: Author Rules at a Glance
+
+- [ ] Add the fourth and final H2, Rules at a Glance, targeting 250–300 words.
+
+- [ ] Under H3 Core Action Flow, give this numbered sequence:
+
+  1. Read the stakes.
+  2. Choose a method.
+  3. Capture the target.
+  4. Roll and select the die.
+  5. Check natural 1 or natural 20.
+  6. Compute target - selected die.
+  7. Spend Fortune if allowed.
+  8. Apply the printed result.
+  9. Update the sheet before turning to the destination.
+
+- [ ] Follow with one-line Advantage and Disadvantage reminders.
+
+- [ ] Under H3 Tower Reminders, summarise Fortune timing/cost, Fortune tests, 0 Stamina, Exposure thresholds, possessions, story marks, tactical exchanges, and crisis-before-destination order. Keep this a lookup aid rather than a second tutorial.
+
+### Step 3: Verify module boundaries and editorial allocation
+
+- [ ] Run the production-index check:
+
+~~~bash
+python3 - <<'PY'
+from pathlib import Path
+from tools import live_playtest as lp
+
+path = Path("stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md")
+assert list(lp.index_rule_sections(path)) == [
+    "before you begin",
+    "part i: how to play",
+    "part ii: rules for this adventure",
+    "rules at a glance",
+]
+print("Final lookup surface: OK")
+PY
+~~~
+
+- [ ] Use this one-off editorial counter and record all four H2 counts in the task report:
+
+~~~bash
+python3 - <<'PY'
+import re
+from pathlib import Path
+from tools import live_playtest as lp
+
+word_re = re.compile(r"[A-Za-z0-9]+(?:[’'][A-Za-z0-9]+)*")
+path = Path("stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md")
+for heading, block in lp.index_rule_sections(path).items():
+    print(heading, len(word_re.findall(block)))
+PY
+~~~
+
+- [ ] Read Part II and Rules at a Glance against every requirement above. Confirm Exposure first appears in Part II, all four thresholds pair fiction with mechanics, Hints contain no route advice, and Rumours contain no unread information.
 
 - [ ] Run:
 
-```bash
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_player_primer -v
-```
-
-Expected: failures report the missing `Rules at a Glance` H2 and incomplete Tower-module wording.
-
-### Step 4: Author the final Tower module
-
-- [ ] Rewrite Part II to 450–550 words with exactly these H3 sections and responsibilities:
-
-  - `Conan`: identify the young but seasoned fixed protagonist; print the complete profile; define the selected capability labels; state Fortune 10, Stamina 6, Exposure 0, Sword, and no starting marks.
-  - `Exposure`: define the track before any actionable use; give the complete 0–5 table; list only the increases printed in the current playable slice; include the approved 2→3 micro-example; state the cap and E02 resolution.
-  - `Injury, Recovery, and Death`: state authored 1- or 2-point losses, mortal hazards, immediate E03 at 0 Stamina, maxima, and the absence of Fortune/Stamina/Exposure recovery in this slice.
-  - `Tactical Exchanges and Crises`: explain authored tactical choices, consumption timing, and the order `apply printed costs → resolve Stamina 0 or Exposure 5 crisis → follow a surviving destination`.
-  - `Hints for Play`: offer process advice only—read all methods and stakes, mark the current passage, check conditions, update immediately, and trust explicit terminals. Do not identify a safe, efficient, canonical, or optimal route.
-  - `Rumours of the Tower`: provide a brief atmospheric orientation based only on facts available at the opening. Do not reveal unread events, creatures, allies, solutions, or passage outcomes.
-
-- [ ] Use `0–2`, `3`, `4`, and `5` as the visible Exposure table rows. Pair the states and mechanics explicitly: at 0–2 the intrusion is unconfirmed and all listed choices remain; at 3 the watch is uneasy and lingering choices close; at 4 a search begins and only immediate advance or withdrawal remains; at 5 the breach is discovered and E02 resolves. Preserve the approved increases from the existing rules rather than inventing new events.
-
-### Step 5: Author Rules at a Glance
-
-- [ ] Add `## Rules at a Glance` at the end of `quick-rules.md`, targeting 250–300 words.
-
-- [ ] Under `### Core Action Flow`, give an explicitly numbered nine-step list:
-
-```text
-1. Read the stakes.
-2. Choose a method.
-3. Capture the target.
-4. Roll and select the die.
-5. Check natural 1 or natural 20.
-6. Compute target - selected die.
-7. Spend Fortune if allowed.
-8. Apply the printed result.
-9. Update the sheet before turning to the destination.
-```
-
-- [ ] Follow the list with one-line Advantage and Disadvantage reminders.
-
-- [ ] Under `### Tower Reminders`, summarise Fortune timing/cost, Fortune tests, 0 Stamina, Exposure thresholds, possessions, story marks, tactical exchanges, and crisis-before-destination order. This is a lookup spread, not a second tutorial.
-
-### Step 6: Run focused and regression tests
-
-- [ ] Run:
-
-```bash
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_player_primer -v
+~~~bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py' -v
-```
+git diff --check
+~~~
 
-Expected: all tests pass.
+Expected: the full suite passes and the diff is clean.
 
-### Step 7: Commit the Tower module
+### Step 4: Commit the Tower module
 
-- [ ] Review Part I for reusable language and Part II for Tower-only language, then commit:
+- [ ] Commit:
 
-```bash
-git add tests/test_player_primer.py \
-  stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md
+~~~bash
+git add stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md
 git commit -m "docs: add the Tower adventure rules module"
-```
+~~~
 
 ---
 
@@ -486,88 +306,80 @@ git commit -m "docs: add the Tower adventure rules module"
 
 **Files:**
 
-- Modify: `tests/test_player_primer.py`
-- Modify: `stories/public_domain/howard/tower_of_the_elephant/playtest/adventure-sheet.md`
-- Modify: `stories/public_domain/howard/tower_of_the_elephant/playtest/slice-01.md`
-- Test: `tests/test_player_primer.py`
+- Create: tests/test_player_primer.py
+- Modify: stories/public_domain/howard/tower_of_the_elephant/playtest/adventure-sheet.md
+- Modify: stories/public_domain/howard/tower_of_the_elephant/playtest/slice-01.md
 
-### Step 1: Add failing sheet, front-matter, word-count, and passage-integrity tests
+### Step 1: Add behavioural characterization tests
 
-- [ ] Add:
+- [ ] Create tests/test_player_primer.py with these tests. Each names a real integration break: the harness lookup surface becomes unusable, a reader link does not resolve or is reordered, or a numbered-passage byte changes.
 
-```python
-    def test_front_matter_and_story_links_follow_the_approved_order(self) -> None:
+~~~python
+from __future__ import annotations
+
+import hashlib
+import re
+import unittest
+from pathlib import Path
+
+from tools import live_playtest as lp
+
+
+ROOT = Path(__file__).resolve().parents[1]
+TOWER = ROOT / "stories/public_domain/howard/tower_of_the_elephant/playtest"
+RULES = TOWER / "quick-rules.md"
+SHEET = TOWER / "adventure-sheet.md"
+STORY = TOWER / "slice-01.md"
+S01_MARKER = "## S01 — The Outer Wall".encode("utf-8")
+NUMBERED_BODY_SHA256 = (
+    "2f4926bbc3fef29a3db0d6aa4087c0d6a3c33f322f5b41896333ccb3bafc8496"
+)
+LINK_RE = re.compile(r"\[[^]]+\]\(([^)]+)\)")
+
+
+class PlayerPrimerIntegrationTests(unittest.TestCase):
+    def test_harness_exposes_the_complete_primer_lookup_surface(self) -> None:
         self.assertEqual(
-            h2_headings(self.rules),
+            list(lp.index_rule_sections(RULES)),
             [
-                "Before You Begin",
-                "Part I: How to Play",
-                "Part II: Rules for This Adventure",
-                "Rules at a Glance",
+                "before you begin",
+                "part i: how to play",
+                "part ii: rules for this adventure",
+                "rules at a glance",
             ],
         )
-        self.assertIn("# *The Tower of the Elephant* Adventure Sheet", self.sheet)
-        preamble = self.story[:self.story.index(S01_HEADING)]
-        self.assert_occurs_in_order(
-            preamble,
-            "quick-rules.md",
-            "Before You Begin",
-            "Rules at a Glance",
-            "adventure-sheet.md",
-            "prepare its starting values",
-            "S01",
-        )
 
-    def test_adventure_sheet_has_two_modular_pages(self) -> None:
-        self.assert_occurs_in_order(
-            self.sheet,
-            "## Left Page: Character and Resources",
-            "BRN 13 | AGI 12 | CUN 12 | WIL 12 | FOR 10/10 | STM 6/6",
-            "Fortune",
-            "Stamina",
-            "## Right Page: Adventure State",
-            "Exposure",
-            "0–2 — Unconfirmed",
-            "3 — Uneasy",
-            "4 — Search",
-            "5 — Discovered",
-            "Possessions",
-            "Sword",
-            "Story marks",
-            "Notes",
-        )
+    def test_story_preamble_reader_links_resolve_in_rules_then_sheet_order(self) -> None:
+        story = STORY.read_text(encoding="utf-8")
+        preamble = story[:story.index(S01_MARKER.decode("utf-8"))]
+        targets = LINK_RE.findall(preamble)
+        self.assertEqual(targets, ["quick-rules.md", "adventure-sheet.md"])
+        for target in targets:
+            self.assertTrue((TOWER / target).is_file(), target)
 
-    def test_combined_reader_guidance_is_within_the_editorial_envelope(self) -> None:
-        count = reader_word_count(self.rules, self.sheet)
-        self.assertGreaterEqual(count, 1800)
-        self.assertLessEqual(count, 2000)
-
-    def test_numbered_passage_prose_and_edges_are_unchanged(self) -> None:
-        story_bytes = STORY.read_bytes()
-        marker = S01_HEADING.encode("utf-8")
-        self.assertEqual(story_bytes.count(marker), 1)
-        numbered_body = story_bytes[story_bytes.index(marker):]
+    def test_numbered_passage_bytes_are_unchanged(self) -> None:
+        payload = STORY.read_bytes()
+        self.assertEqual(payload.count(S01_MARKER), 1)
+        numbered = payload[payload.index(S01_MARKER):]
         self.assertEqual(
-            hashlib.sha256(numbered_body).hexdigest(),
+            hashlib.sha256(numbered).hexdigest(),
             NUMBERED_BODY_SHA256,
         )
-```
+~~~
 
-### Step 2: Run the focused tests and confirm RED
+- [ ] Run the characterization tests before editing the sheet or story:
 
-- [ ] Run:
-
-```bash
+~~~bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_player_primer -v
-```
+~~~
 
-Expected: the modular-page and likely word-envelope tests fail. The numbered-body digest must already pass; if it fails before editing, stop and reconcile the execution base rather than updating the constant.
+Expected: all three pass against the completed Tasks 1–2 and the protected existing story. Record this GREEN characterization explicitly; no RED is expected because the user approved tests for unchanged integration boundaries rather than source-text tests for prose.
 
-### Step 3: Rewrite the two-page Adventure Sheet
+### Step 2: Rewrite the two-page Adventure Sheet
 
-- [ ] Use this exact top-level structure:
+- [ ] Use this exact structure:
 
-```markdown
+~~~markdown
 # *The Tower of the Elephant* Adventure Sheet
 
 ## Left Page: Character and Resources
@@ -587,61 +399,75 @@ Expected: the modular-page and likely word-envelope tests fail. The numbered-bod
 ### Story marks
 
 ### Notes
-```
+~~~
 
 - [ ] On the left page, print the fixed profile and blank ten-box Fortune and six-box Stamina tracks. Tell the reader to cross off from the right and never exceed the printed maxima.
 
-- [ ] On the right page, print a circleable 0–5 Exposure line and compact cues `0–2 — Unconfirmed`, `3 — Uneasy`, `4 — Search`, `5 — Discovered`. Print Sword as starting equipment, then writable lines for possessions, story marks, and notes.
+- [ ] On the right page, print a circleable 0–5 Exposure line and compact cues: 0–2 — Unconfirmed; 3 — Uneasy; 4 — Search; 5 — Discovered. Print Sword as starting equipment, then writable lines for possessions, story marks, and notes.
 
-- [ ] Keep instructions concise—approximately 100 reader-facing words—and do not repeat the primer's full rules.
+- [ ] Keep instructions concise, approximately 100 reader-facing words, and do not repeat the primer's full rules.
 
-### Step 4: Replace only the story preamble
+### Step 3: Replace only the story preamble
 
 - [ ] Replace the text above S01 with this sequence, retaining the existing title:
 
-```markdown
+~~~markdown
 # *The Tower of the Elephant*: Outer Wall Playtest
 
 Read the complete [player's rules](quick-rules.md), from **Before You Begin**
 through **Rules at a Glance**. Then copy or print the two-page
 [Adventure Sheet](adventure-sheet.md), prepare its starting values, and begin
 at **S01**.
-```
+~~~
 
-- [ ] Do not touch any byte from `## S01 — The Outer Wall` through EOF.
+- [ ] Do not touch any byte from the S01 heading through EOF.
 
-### Step 5: Tune the editorial word envelope
-
-- [ ] Run just the word-count test:
-
-```bash
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
-  tests.test_player_primer.PlayerPrimerContractTests.test_combined_reader_guidance_is_within_the_editorial_envelope -v
-```
-
-Expected: `OK` with 1,800–2,000 words under the test's reader-visible counter. If under, add useful clarification in the relevant teaching section; if over, remove repetition. Do not pad or compress the writable sheet to manipulate the count.
-
-### Step 6: Run focused and regression tests
+### Step 4: Verify the reader files
 
 - [ ] Run:
 
-```bash
+~~~bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_player_primer -v
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py' -v
-```
+git diff --check
+~~~
 
-Expected: all tests pass, including the fixed numbered-body digest.
+Expected: all tests pass, including link resolution and the raw-byte digest.
 
-### Step 7: Commit the modular sheet and entry sequence
+- [ ] Run the one-off reader-visible word counter and record the exact value:
+
+~~~bash
+python3 - <<'PY'
+import re
+from pathlib import Path
+
+tower = Path("stories/public_domain/howard/tower_of_the_elephant/playtest")
+texts = [
+    (tower / "quick-rules.md").read_text(encoding="utf-8"),
+    (tower / "adventure-sheet.md").read_text(encoding="utf-8"),
+]
+visible = "\n".join(texts)
+visible = re.sub(r"<!--.*?-->", " ", visible, flags=re.DOTALL)
+visible = re.sub(r"\[([^]]+)\]\([^)]+\)", r"\1", visible)
+visible = re.sub(r"https?://\S+", " ", visible)
+words = re.findall(r"[A-Za-z0-9]+(?:[’'][A-Za-z0-9]+)*", visible)
+print(len(words))
+assert 1800 <= len(words) <= 2000
+PY
+~~~
+
+Expected: 1,800–2,000 words. If outside the range, add useful clarification or remove repetition in the relevant rules section; do not pad the sheet.
+
+### Step 5: Commit the sheet and entry sequence
 
 - [ ] Commit:
 
-```bash
+~~~bash
 git add tests/test_player_primer.py \
   stories/public_domain/howard/tower_of_the_elephant/playtest/adventure-sheet.md \
   stories/public_domain/howard/tower_of_the_elephant/playtest/slice-01.md
 git commit -m "docs: add the modular Tower adventure sheet"
-```
+~~~
 
 ---
 
@@ -649,47 +475,14 @@ git commit -m "docs: add the modular Tower adventure sheet"
 
 **Files:**
 
-- Modify: `tests/test_player_primer.py`
-- Modify: `tests/test_live_playtest.py`
-- Modify: `docs/playtesting/live-playtest.md`
-- Test: `tests/test_player_primer.py`
-- Test: `tests/test_live_playtest.py`
+- Modify: tests/test_live_playtest.py
+- Modify: docs/playtesting/live-playtest.md
 
-### Step 1: Add the failing protocol contract
+### Step 1: Add the real-file observer characterization
 
-- [ ] Add this static contract test:
+- [ ] Immediately before TowerSmokeReplayTests in tests/test_live_playtest.py, add:
 
-```python
-    def test_live_protocol_requires_calibration_02_primer_before_s01(self) -> None:
-        hypothesis = (
-            "A reader with no knowledge of Sinew & Steel can prepare the "
-            "Adventure Sheet, understand the routine play loop and "
-            "Tower-specific state, and enter S01 without external explanation."
-        )
-        self.assertIn("tower-calibration-02", self.protocol)
-        self.assertIn(hypothesis, " ".join(self.protocol.split()))
-        self.assert_occurs_in_order(
-            self.protocol,
-            'lookup tower-calibration-02 --section "Before You Begin"',
-            'lookup tower-calibration-02 --section "Part I: How to Play"',
-            'lookup tower-calibration-02 --section "Part II: Rules for This Adventure"',
-            'lookup tower-calibration-02 --section "Rules at a Glance"',
-            "Adventure Sheet",
-            "reader says they are ready",
-            "show tower-calibration-02",
-        )
-        self.assert_matches_concepts(
-            self.protocol,
-            r"record.*confusion.*before.*answer",
-            r"answer.*(?:from|grounded in).*primer",
-        )
-```
-
-### Step 2: Add a real-file observer characterization test
-
-- [ ] In `tests/test_live_playtest.py`, immediately before `TowerSmokeReplayTests`, add this integration class. It proves that the existing observer can present the four H2 blocks and only then show S01, without changing state:
-
-```python
+~~~python
 class TowerPrimerCalibrationTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary_directory = tempfile.TemporaryDirectory()
@@ -759,27 +552,28 @@ class TowerPrimerCalibrationTests(unittest.TestCase):
                 "passage_shown",
             ],
         )
-```
-
-### Step 3: Run the focused tests and confirm the intended split
+~~~
 
 - [ ] Run:
 
-```bash
+~~~bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
-  tests.test_player_primer.PlayerPrimerContractTests.test_live_protocol_requires_calibration_02_primer_before_s01 \
   tests.test_live_playtest.TowerPrimerCalibrationTests -v
-```
+~~~
 
-Expected: the real-file characterization passes if Tasks 1–3 are complete, proving the deliberately unchanged harness already supports the four-section flow. The protocol contract fails because the current operating guide still starts at S01 with `tower-calibration-01`.
+Expected: the characterization passes before the protocol edit, proving the unchanged harness supports the approved sequence and does not mutate state.
 
-### Step 4: Rewrite the start and primer-first operating sequence
+### Step 2: Rewrite the start and primer-first operating sequence
 
-- [ ] In `docs/playtesting/live-playtest.md`, update the worked start command to session ID `tower-calibration-02`, purpose `Primer-first natural calibration`, and the approved hypothesis verbatim. Keep all fixed state arguments unchanged.
+- [ ] In docs/playtesting/live-playtest.md, update the worked start command to session ID tower-calibration-02, purpose Primer-first natural calibration, and this hypothesis verbatim:
 
-- [ ] Insert `## Primer-first calibration` before `## Live operating sequence` and give these commands in this order:
+    A reader with no knowledge of Sinew & Steel can prepare the Adventure Sheet, understand the routine play loop and Tower-specific state, and enter S01 without external explanation.
 
-```bash
+- [ ] Keep all fixed state arguments unchanged.
+
+- [ ] Insert H2 Primer-first calibration before H2 Live operating sequence and give these commands in this order:
+
+~~~bash
 python3 tools/live_playtest.py lookup tower-calibration-02 --section "Before You Begin"
 python3 tools/live_playtest.py lookup tower-calibration-02 --section "Part I: How to Play"
 python3 tools/live_playtest.py lookup tower-calibration-02 --section "Part II: Rules for This Adventure"
@@ -787,36 +581,35 @@ python3 tools/live_playtest.py lookup tower-calibration-02 --section "Rules at a
 python3 tools/live_playtest.py note tower-calibration-02 --kind operator \
   --text "Adventure Sheet presented; reader says they are ready for S01"
 python3 tools/live_playtest.py show tower-calibration-02
-```
+~~~
 
 - [ ] State the operating rule directly: record each spontaneous rules question or confusion before answering; answer only from reached reader material and the primer; pause before S01 if a procedural question remains unresolved; show S01 only after the reader says they are ready.
 
 - [ ] Keep the existing passage-play sequence after this prerequisite. Update the Calibration Checklist so its first entries require the four lookups, sheet preparation, and reader readiness before S01.
 
-- [ ] Do not claim that this second run is blind: the first reader has already seen S01 and Exposure. State that it calibrates clarity/usability and that later testing needs readers unfamiliar with both S&S and this slice.
+- [ ] State that this second run calibrates clarity and usability rather than complete blindness because the first reader has already seen S01 and Exposure. Later testing needs readers unfamiliar with both S&S and this slice.
 
-### Step 5: Run focused and full tests
+### Step 3: Verify and commit the protocol
 
 - [ ] Run:
 
-```bash
+~~~bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
-  tests.test_player_primer.PlayerPrimerContractTests.test_live_protocol_requires_calibration_02_primer_before_s01 \
   tests.test_live_playtest.TowerPrimerCalibrationTests -v
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py' -v
-```
+git diff --check
+~~~
 
-Expected: all tests pass.
+Expected: all tests pass and the diff is clean.
 
-### Step 6: Commit the primer-first protocol
+- [ ] Manually compare every documented lookup/start/note/show argument with tools/live_playtest.py --help. Do not create a real .playtest session.
 
 - [ ] Commit:
 
-```bash
-git add docs/playtesting/live-playtest.md \
-  tests/test_player_primer.py tests/test_live_playtest.py
+~~~bash
+git add docs/playtesting/live-playtest.md tests/test_live_playtest.py
 git commit -m "docs: require primer-first live calibration"
-```
+~~~
 
 ---
 
@@ -824,43 +617,73 @@ git commit -m "docs: require primer-first live calibration"
 
 **Files:**
 
-- Review: `stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md`
-- Review: `stories/public_domain/howard/tower_of_the_elephant/playtest/adventure-sheet.md`
-- Review: `stories/public_domain/howard/tower_of_the_elephant/playtest/slice-01.md`
-- Review: `docs/playtesting/live-playtest.md`
-- Review: `tests/test_player_primer.py`
-- Review: `tests/test_live_playtest.py`
+- Review: stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md
+- Review: stories/public_domain/howard/tower_of_the_elephant/playtest/adventure-sheet.md
+- Review: stories/public_domain/howard/tower_of_the_elephant/playtest/slice-01.md
+- Review: docs/playtesting/live-playtest.md
+- Review: tests/test_player_primer.py
+- Review: tests/test_live_playtest.py
 
-### Step 1: Run the current-Python acceptance suite
+### Step 1: Read the reader journey as a book
+
+- [ ] Read, in order: Before You Begin; Part I; the worked Conan example; Part II; Rumours; Rules at a Glance; Adventure Sheet; story preamble; S01.
+
+- [ ] Check manually:
+
+  - every term in S01 is defined before use;
+  - the worked example reconstructs the complete resolution loop without outside explanation;
+  - all approved arithmetic and resource changes are correct;
+  - Part I contains no Tower-only rule and Part II contains no implied universal rule;
+  - all four capability labels, abbreviations, values, and scopes are consistent;
+  - every tracked state has a consumer in the playable slice;
+  - Exposure has all four thresholds and is explained before actionable use;
+  - the Adventure Sheet can be prepared from the primer alone;
+  - Hints provide process advice without route advice;
+  - Rumours add atmosphere without revealing an unread event;
+  - Rules at a Glance works as a lookup aid rather than duplicate instruction;
+  - the protocol presents all front matter before S01; and
+  - the language is direct, concrete, modern, and original.
+
+- [ ] Make one focused repair pass for material findings only. Do not continue polishing after a clean reread.
+
+### Step 2: Record the final editorial measures
+
+- [ ] Run the combined word-count command from Task 3 and record the exact 1,800–2,000 result.
+
+- [ ] Run the H2 counter from Task 2 and record the allocation for Before You Begin, Part I, Part II, and Rules at a Glance.
+
+- [ ] Record any reader-comprehension question that remains for tower-calibration-02; do not answer it by silently adding outside S&S knowledge.
+
+### Step 3: Run the current-Python acceptance suite
 
 - [ ] Run:
 
-```bash
+~~~bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_player_primer -v
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py' -v
 python3 tools/live_playtest.py --help
-```
+~~~
 
-Expected: both test commands end in `OK`; CLI help exits 0.
+Expected: both test commands end in OK; CLI help exits 0.
 
-### Step 2: Run the Python 3.10 compatibility suite
+### Step 4: Run Python 3.10 compatibility
 
 - [ ] Run:
 
-```bash
+~~~bash
 PYTHONDONTWRITEBYTECODE=1 uv run --no-project --python 3.10 \
   python -m unittest discover -s tests -p 'test_*.py' -v
-```
+~~~
 
-Expected: the full suite ends in `OK`. A benign `uv --no-project` warning does not change the result.
+Expected: the suite ends in OK. A benign uv --no-project warning does not change the result.
 
-### Step 3: Verify the protected boundaries
+### Step 5: Verify protected boundaries
 
 - [ ] Run:
 
-```bash
-git diff --check c27a3f616395a3305b13a53ba24efc4dc71021a8..HEAD
-git diff --exit-code c27a3f616395a3305b13a53ba24efc4dc71021a8..HEAD -- tools/live_playtest.py
+~~~bash
+git diff --check b6d60c021372aea4526a218e46ca9fc64af17946..HEAD
+git diff --exit-code b6d60c021372aea4526a218e46ca9fc64af17946..HEAD -- tools/live_playtest.py
 git ls-files '.playtest/**'
 git check-ignore -v .playtest/sessions/example/report.md
 python3 - <<'PY'
@@ -873,42 +696,26 @@ marker = "## S01 — The Outer Wall".encode("utf-8")
 numbered = payload[payload.index(marker):]
 print(hashlib.sha256(numbered).hexdigest())
 PY
-```
+~~~
 
 Expected:
 
 - no whitespace errors;
-- no diff for `tools/live_playtest.py`;
-- `git ls-files` prints nothing under `.playtest/`;
-- `git check-ignore` identifies the repository ignore rule; and
-- the digest is `2f4926bbc3fef29a3db0d6aa4087c0d6a3c33f322f5b41896333ccb3bafc8496`.
+- no diff for tools/live_playtest.py;
+- no tracked .playtest files;
+- the repository ignore rule is reported; and
+- the digest is 2f4926bbc3fef29a3db0d6aa4087c0d6a3c33f322f5b41896333ccb3bafc8496.
 
-### Step 4: Perform one editorial repair pass
-
-- [ ] Read the five front-matter components in their intended order, then read S01. Check:
-
-  - every term in S01 is defined before use;
-  - the worked example reconstructs the complete resolution loop without outside explanation;
-  - Part I contains no Tower-only rule and Part II contains no implied universal rule;
-  - every tracked state has a consumer in the playable slice;
-  - the Adventure Sheet can be prepared from the primer alone;
-  - Hints provide process advice without route advice;
-  - Rumours add atmosphere without revealing an unread event;
-  - Rules at a Glance works as a lookup aid rather than duplicate instruction; and
-  - the language is direct, concrete, modern, and original.
-
-- [ ] Make one focused repair pass for material findings only. If edits change a contractual fact, add or adjust the narrow test first. Do not continue polishing after a clean reread.
-
-### Step 5: Record final evidence without starting the calibration
+### Step 6: Record final evidence without starting calibration
 
 - [ ] Run:
 
-```bash
+~~~bash
 git status --short --branch
-git log --oneline c27a3f616395a3305b13a53ba24efc4dc71021a8..HEAD
-git diff --stat c27a3f616395a3305b13a53ba24efc4dc71021a8..HEAD
-```
+git log --oneline b6d60c021372aea4526a218e46ca9fc64af17946..HEAD
+git diff --stat b6d60c021372aea4526a218e46ca9fc64af17946..HEAD
+~~~
 
-- [ ] If the editorial pass changed tracked files, rerun Steps 1–3 and commit a narrowly named repair. Otherwise leave the four implementation commits as the complete result.
+- [ ] If the editorial pass changed tracked files, rerun Steps 2–5 and commit a narrowly named repair. Otherwise leave the four implementation commits as the completed tracked result.
 
-- [ ] Report the tracked implementation as ready for acceptance calibration, with test evidence, the exact reader-word count, protected-boundary checks, and any residual limitation. Explicitly state that static tests and editorial review do not establish reader comprehension, that `tower-calibration-02` has not yet been started, and that beginning the user-gated live playtest is the next increment after review and integration.
+- [ ] Report the branch as ready for acceptance calibration, with test evidence, exact word counts, protected-boundary checks, and residual limitations. Explicitly state that static checks and editorial review do not establish reader comprehension, that tower-calibration-02 has not started, and that the user-gated live playtest is the next increment after review and integration.

@@ -384,9 +384,16 @@ The expected tracked work is limited to:
 - the Tower Adventure Sheet;
 - the pre-passage reading instruction in the Tower slice;
 - the live-playtest operating protocol; and
-- focused tests for the reader-material contract.
+- focused behavioural tests for the observer lookup surface, reader-link
+  resolution, and protected numbered-passage bytes.
 
-The implementation should verify:
+Human-facing prose is not frozen with source-text unit tests. Exact content,
+editorial length, atmosphere, clarity, and instructional completeness are
+checked directly during the editorial acceptance pass and then tested with
+the reader in the live calibration.
+
+The implementation should verify, through behavioural tests where software
+consumes the files and through recorded editorial checks for the prose:
 
 - required headings and their order;
 - the editorial word envelope;
@@ -413,7 +420,7 @@ this project.
 
 ## Acceptance criteria
 
-The design is implemented successfully when:
+The tracked design is ready for acceptance calibration when:
 
 - a reader can begin without prior *Sinew & Steel* knowledge;
 - the complete front matter follows the approved five-part order;
@@ -424,4 +431,8 @@ The design is implemented successfully when:
 - all terminology is internally consistent;
 - numbered passage content and route logic remain unchanged;
 - the repository tests pass on the installed Python and Python 3.10; and
-- a new live calibration begins with the primer rather than S01.
+- the next live calibration is configured to begin with the primer rather
+  than S01.
+
+Reader comprehension remains a live acceptance question. It is established
+only by the user-gated calibration, not by the tracked implementation alone.
