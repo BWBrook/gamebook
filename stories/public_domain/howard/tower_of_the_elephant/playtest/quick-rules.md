@@ -148,16 +148,17 @@ printed increase immediately.
 
 | Exposure | State and effect |
 | ---: | --- |
-| 0–2 | Unconfirmed: all listed choices remain available. |
-| 3 | Uneasy: the watch has reason for unease, and lingering choices close. |
-| 4 | Search: immediate advance or withdrawal are the only legal choices. |
+| 0–2 | Unconfirmed: no breach is confirmed; follow the passage's printed choices. |
+| 3 | Uneasy: passages acknowledge the watch's attention; follow their printed choices. |
+| 4 | Search: passages acknowledge a search and force urgency in the fiction; follow their printed choices. |
 | 5 | Discovered: resolve `E02`. |
 
 The only printed increases are another patrol interval (+1); a loud or
 avoidable disturbance (+1); a failed Taurus standoff (+1); a natural 20 in
 that standoff (+2); and the amount printed by a lion tactic. No ordinary event
 lowers Exposure. For example, at 2 → 3, mark 3: the watch becomes uneasy and
-lingering choices begin to close.
+later passages acknowledge it. No choice vanishes unless a passage explicitly
+says so.
 
 ### Injury, Recovery, and Death
 
@@ -223,10 +224,12 @@ each point lowers that die by one, up to the Fortune remaining. Natural 1 and
 natural 20 are locked. A Fortune test captures current Fortune as its target;
 spending afterward cannot change that target.
 
-At 0 Stamina, go immediately to `E03`. Exposure starts at 0: 3 closes
-lingering choices, 4 permits only immediate advance or withdrawal, and 5
-resolves `E02`. Record possessions and story marks as passages award them;
-cross either off only when instructed. In a tactical exchange, choose an
-available method and apply its printed cost. Always resolve Stamina 0 or
-Exposure 5 before following a surviving destination. Fortune, Stamina, and
-Exposure do not recover in this slice. Stop at an explicit terminal.
+At 0 Stamina, go immediately to `E03`. Exposure starts at 0: at 3, passages
+acknowledge the watch's unease; at 4, they acknowledge a search and force
+urgency in the fiction; at 5, resolve `E02`. Exposure 3 or 4 removes no choice
+unless the current passage says so. Record possessions and story marks as
+passages award them; cross either off only when instructed. In a tactical
+exchange, choose an available method and apply its printed cost. Always resolve
+Stamina 0 or Exposure 5 before following a surviving destination. Fortune,
+Stamina, and Exposure do not recover in this slice. Stop at an explicit
+terminal.

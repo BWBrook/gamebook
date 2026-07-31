@@ -212,10 +212,10 @@ git commit -m "docs: teach the reusable gamebook core"
   - define it before any actionable use;
   - state that it starts at 0 and is capped at 5;
   - give visible table rows for 0–2, 3, 4, and 5;
-  - pair each state with its mechanic: 0–2 unconfirmed/all choices; 3 uneasy/lingering closes; 4 search/immediate advance or withdrawal only; 5 discovered/resolve E02;
+  - pair each state with its supported effect: 0–2 unconfirmed/no confirmed breach, follow the passage's printed choices; 3 uneasy/passages acknowledge watch attention, with no automatic choice closure; 4 search/passages acknowledge a search and force fictional urgency, with no generic advance/withdrawal restriction beyond the passage's printed choices; 5 discovered/resolve E02;
   - preserve only the increases already printed in the playable slice: another patrol interval, loud or avoidable disturbance, failed Taurus standoff, natural 20 in that standoff, and the printed lion-tactic amount;
   - state that no ordinary event lowers Exposure; and
-  - include the micro-example 2 → 3: mark 3, the watch becomes uneasy, and lingering choices begin to close.
+  - include the micro-example 2 → 3: mark 3, later passages acknowledge the watch's unease, and no choice vanishes unless a passage explicitly says so.
 
 - [ ] Under Injury, Recovery, and Death, state authored 1- or 2-point losses, mortal hazards, immediate E03 at 0 Stamina, maxima, and no Fortune, Stamina, or Exposure recovery in this slice.
 

@@ -195,9 +195,14 @@ Part II is the title-specific module. For the current Tower slice it includes:
 - concise hints for practical play; and
 - **Rumours of the Tower**, a short atmospheric orientation.
 
-The Exposure explanation precedes every actionable reference to Exposure. A
-small example shows Exposure moving from 2 to 3, the player marking the new
-value, the watch becoming uneasy, and lingering choices beginning to close.
+The Exposure explanation precedes every actionable reference to Exposure. At
+0–2, no breach is confirmed and the reader follows the current passage's
+printed choices. At 3, passages acknowledge the watch's unease. At 4, passages
+acknowledge a search and force urgency in the fiction. Neither 3 nor 4 removes
+a choice automatically. At 5, the reader resolves E02. A small example shows
+Exposure moving from 2 to 3, the player marking the new value, and later
+passages acknowledging the watch's unease. No choice vanishes unless a passage
+explicitly says so.
 
 The module states only rules supported by the playable material. It expands as
 the full adaptation develops.
