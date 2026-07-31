@@ -220,19 +220,28 @@ class StateMutationTests(HarnessTestCase):
             allow_duplicate=True,
             clock=self.fixed_clock,
         )
+        self.assertEqual(
+            loaded.state["possessions"],
+            ["Sword", "Guard's spear", "guard's SPEAR"],
+        )
         consumed = lp.change_collection(
             loaded, "possessions", "consume", "GUARD'S SPEAR", "Used", clock=self.fixed_clock
         )
+        self.assertEqual(loaded.state["possessions"], ["Sword", "guard's SPEAR"])
         removed = lp.change_collection(
             loaded, "possessions", "remove", "guard's spear", "Discarded", clock=self.fixed_clock
         )
+        self.assertEqual(loaded.state["possessions"], ["Sword"])
 
         self.assertEqual(added["data"]["action"], "add")
+        self.assertEqual(added["data"]["name"], "Guard's spear")
         self.assertFalse(added["data"]["allow_duplicate"])
         self.assertTrue(duplicate["data"]["allow_duplicate"])
+        self.assertEqual(duplicate["data"]["name"], "guard's SPEAR")
         self.assertEqual(consumed["data"]["action"], "consume")
+        self.assertEqual(consumed["data"]["name"], "GUARD'S SPEAR")
         self.assertEqual(removed["data"]["action"], "remove")
-        self.assertNotIn("Guard's spear", loaded.state["possessions"])
+        self.assertEqual(removed["data"]["name"], "guard's spear")
         with self.assertRaisesRegex(lp.HarnessError, "not present"):
             lp.change_collection(
                 loaded, "possessions", "consume", "missing", "Invalid", clock=self.fixed_clock
@@ -364,17 +373,17 @@ class LifecycleAndCorrectionTests(HarnessTestCase):
 
     def test_each_correction_contract_changes_only_its_authorized_state(self) -> None:
         cases = (
-            ("annotate", {"replacement_text": "Correct wording"}, lambda session: (session.state["resources"]["Stamina"]["current"], session.workflow), (6, {"choice": None, "roll": None})),
-            ("set-resource", {"name": "stamina", "value": 4}, lambda session: session.state["resources"]["Stamina"]["current"], 4),
-            ("set-pressure", {"value": 3}, lambda session: session.state["pressure"]["current"], 3),
-            ("add-possession", {"name": "Shield"}, lambda session: session.state["possessions"], ["Sword", "Shield"]),
-            ("remove-possession", {"name": "sword"}, lambda session: session.state["possessions"], []),
-            ("add-mark", {"name": "Saw smoke"}, lambda session: session.state["story_marks"], ["Saw smoke"]),
-            ("remove-mark", {"name": "Saw smoke"}, lambda session: session.state["story_marks"], []),
-            ("set-passage", {"value": "E01"}, lambda session: session.state["current_passage"], "E01"),
-            ("clear-workflow", {}, lambda session: session.workflow, {"choice": None, "roll": None}),
+            ("annotate", {"replacement_text": "Correct wording"}, None, None),
+            ("set-resource", {"name": "stamina", "value": 4}, ("resources", "Stamina", "current"), 4),
+            ("set-pressure", {"value": 3}, ("pressure", "current"), 3),
+            ("add-possession", {"name": "Shield"}, ("possessions",), ["Sword", "Shield"]),
+            ("remove-possession", {"name": "sword"}, ("possessions",), []),
+            ("add-mark", {"name": "Saw smoke"}, ("story_marks",), ["Saw smoke"]),
+            ("remove-mark", {"name": "Saw smoke"}, ("story_marks",), []),
+            ("set-passage", {"value": "E01"}, ("current_passage",), "E01"),
+            ("clear-workflow", {}, None, None),
         )
-        for operation, kwargs, observed, expected in cases:
+        for operation, kwargs, state_path, expected_value in cases:
             with self.subTest(operation=operation):
                 loaded = self.start(operation.replace("-", "_"))
                 if operation == "remove-mark":
@@ -383,14 +392,26 @@ class LifecycleAndCorrectionTests(HarnessTestCase):
                     lp.record_choice(loaded, "Go on", None, "S02", self.fixed_clock)
                 before_state = json.loads(json.dumps(loaded.state))
                 before_workflow = json.loads(json.dumps(loaded.workflow))
+                expected_state = json.loads(json.dumps(before_state))
+                expected_workflow = json.loads(json.dumps(before_workflow))
+                if state_path == ("resources", "Stamina", "current"):
+                    expected_state["resources"]["Stamina"]["current"] = expected_value
+                elif state_path == ("pressure", "current"):
+                    expected_state["pressure"]["current"] = expected_value
+                elif state_path == ("possessions",):
+                    expected_state["possessions"] = expected_value
+                elif state_path == ("story_marks",):
+                    expected_state["story_marks"] = expected_value
+                elif state_path == ("current_passage",):
+                    expected_state["current_passage"] = expected_value
+                elif operation == "clear-workflow":
+                    expected_workflow = {"choice": None, "roll": None}
                 event = lp.correct_session(
                     loaded, 1, "Compensate operator error", operation, clock=self.fixed_clock, **kwargs
                 )
                 self.assertEqual(event["type"], "correction")
-                self.assertEqual(observed(loaded), expected)
-                if operation == "annotate":
-                    self.assertEqual(loaded.state, before_state)
-                    self.assertEqual(loaded.workflow, before_workflow)
+                self.assertEqual(loaded.state, expected_state)
+                self.assertEqual(loaded.workflow, expected_workflow)
 
     def test_correction_rejects_invalid_target_reason_arguments_and_results_without_mutation(self) -> None:
         loaded = self.start()
@@ -403,14 +424,39 @@ class LifecycleAndCorrectionTests(HarnessTestCase):
             lambda: lp.correct_session(loaded, 1, " ", "annotate", replacement_text="Text", clock=self.fixed_clock),
             lambda: lp.correct_session(loaded, 1, "Reason", "unknown", clock=self.fixed_clock),
             lambda: lp.correct_session(loaded, 1, "Reason", "annotate", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "annotate", replacement_text="Text", name="extra", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "annotate", replacement_text="Text", value=1, clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "set-resource", value=4, clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "set-resource", name="Stamina", clock=self.fixed_clock),
             lambda: lp.correct_session(loaded, 1, "Reason", "set-resource", name="Stamina", value=7, clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "set-resource", name="Stamina", value=4, replacement_text="extra", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "set-pressure", clock=self.fixed_clock),
             lambda: lp.correct_session(loaded, 1, "Reason", "set-pressure", value=-1, clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "set-pressure", value=3, name="extra", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "set-pressure", value=3, replacement_text="extra", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "add-possession", clock=self.fixed_clock),
             lambda: lp.correct_session(loaded, 1, "Reason", "add-possession", name="sword", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "add-possession", name="Shield", value=1, clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "add-possession", name="Shield", replacement_text="extra", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "remove-possession", clock=self.fixed_clock),
             lambda: lp.correct_session(loaded, 1, "Reason", "remove-possession", name="missing", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "remove-possession", name="Sword", value=1, clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "remove-possession", name="Sword", replacement_text="extra", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "add-mark", clock=self.fixed_clock),
             lambda: lp.correct_session(loaded, 1, "Reason", "add-mark", name=" ", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "add-mark", name="Saw smoke", value=1, clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "add-mark", name="Saw smoke", replacement_text="extra", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "remove-mark", clock=self.fixed_clock),
             lambda: lp.correct_session(loaded, 1, "Reason", "remove-mark", name="missing", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "remove-mark", name="Saw smoke", value=1, clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "remove-mark", name="Saw smoke", replacement_text="extra", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "set-passage", clock=self.fixed_clock),
             lambda: lp.correct_session(loaded, 1, "Reason", "set-passage", value="S99", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "set-passage", value="S02", name="extra", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "set-passage", value="S02", replacement_text="extra", clock=self.fixed_clock),
             lambda: lp.correct_session(loaded, 1, "Reason", "clear-workflow", name="extra", clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "clear-workflow", value=1, clock=self.fixed_clock),
+            lambda: lp.correct_session(loaded, 1, "Reason", "clear-workflow", replacement_text="extra", clock=self.fixed_clock),
         )
         for invalid_call in invalid_calls:
             with self.subTest(invalid_call=invalid_call):
