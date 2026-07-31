@@ -1152,6 +1152,77 @@ class ReportTests(HarnessTestCase):
         self.assertIn("Status: active", report)
 
 
+class TowerPrimerCalibrationTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temporary_directory = tempfile.TemporaryDirectory()
+        self.root = Path(__file__).resolve().parents[1]
+
+    def tearDown(self) -> None:
+        self.temporary_directory.cleanup()
+
+    def fixed_clock(self) -> str:
+        return "2026-07-31T10:00:00Z"
+
+    def test_primer_sections_precede_s01_without_changing_state(self) -> None:
+        tower = self.root / "stories/public_domain/howard/tower_of_the_elephant/playtest"
+        hypothesis = (
+            "A reader with no knowledge of Sinew & Steel can prepare the "
+            "Adventure Sheet, understand the routine play loop and "
+            "Tower-specific state, and enter S01 without external explanation."
+        )
+        loaded = lp.start_session(
+            Path(self.temporary_directory.name) / "sessions",
+            "tower-calibration-02",
+            tower / "slice-01.md",
+            tower / "quick-rules.md",
+            tower / "adventure-sheet.md",
+            "Primer-first natural calibration",
+            hypothesis,
+            lp.build_initial_state(
+                {"BRN": 13, "AGI": 12, "CUN": 12, "WIL": 12},
+                {"Fortune": (10, 10), "Stamina": (6, 6)},
+                ("Exposure", 0, 5),
+                ["Sword"],
+                [],
+                "S01",
+            ),
+            self.fixed_clock,
+        )
+        initial_state = json.loads(json.dumps(loaded.state))
+
+        for heading in [
+            "Before You Begin",
+            "Part I: How to Play",
+            "Part II: Rules for This Adventure",
+            "Rules at a Glance",
+        ]:
+            found = lp.record_rules_lookup(loaded, heading, self.fixed_clock)
+            self.assertTrue(found.startswith(f"## {heading}\n"))
+
+        lp.record_note(
+            loaded,
+            "operator",
+            "Adventure Sheet presented; reader ready for S01",
+            self.fixed_clock,
+        )
+        shown = lp.show_current_passage(loaded, self.fixed_clock)
+
+        self.assertTrue(shown.startswith("## S01 — The Outer Wall\n"))
+        self.assertEqual(loaded.state, initial_state)
+        self.assertEqual(
+            [event["type"] for event in loaded.events],
+            [
+                "session_started",
+                "rules_lookup",
+                "rules_lookup",
+                "rules_lookup",
+                "rules_lookup",
+                "operator_note",
+                "passage_shown",
+            ],
+        )
+
+
 class TowerSmokeReplayTests(unittest.TestCase):
     """Prove the audited route against the authoritative Tower reader files."""
 

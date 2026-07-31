@@ -31,11 +31,12 @@ two physical d20s available. The default session location is
 ## Start a Tower session
 
 ```bash
-python3 tools/live_playtest.py start tower-calibration-01 \
+python3 tools/live_playtest.py start tower-calibration-02 \
   --story stories/public_domain/howard/tower_of_the_elephant/playtest/slice-01.md \
   --rules stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md \
   --sheet stories/public_domain/howard/tower_of_the_elephant/playtest/adventure-sheet.md \
-  --purpose "Natural calibration playthrough" \
+  --purpose "Primer-first natural calibration" \
+  --hypothesis "A reader with no knowledge of Sinew & Steel can prepare the Adventure Sheet, understand the routine play loop and Tower-specific state, and enter S01 without external explanation." \
   --start-passage S01 \
   --attribute BRN=13 \
   --attribute AGI=12 \
@@ -49,6 +50,27 @@ python3 tools/live_playtest.py start tower-calibration-01 \
 
 For a repeat session, use a new session ID and a written `--purpose` or
 `--hypothesis` that states the question being revisited.
+
+## Primer-first calibration
+
+This second run calibrates clarity and usability rather than complete blindness,
+because the first reader has already seen S01 and Exposure. Later testing needs
+readers unfamiliar with both Sinew & Steel and this slice.
+
+```bash
+python3 tools/live_playtest.py lookup tower-calibration-02 --section "Before You Begin"
+python3 tools/live_playtest.py lookup tower-calibration-02 --section "Part I: How to Play"
+python3 tools/live_playtest.py lookup tower-calibration-02 --section "Part II: Rules for This Adventure"
+python3 tools/live_playtest.py lookup tower-calibration-02 --section "Rules at a Glance"
+python3 tools/live_playtest.py note tower-calibration-02 --kind operator \
+  --text "Adventure Sheet presented; reader says they are ready for S01"
+python3 tools/live_playtest.py show tower-calibration-02
+```
+
+Record each spontaneous rules question or confusion before answering. Answer
+only from reached reader material and the primer; pause before S01 if a
+procedural question remains unresolved; show S01 only after the reader says
+they are ready.
 
 ## Live operating sequence
 
@@ -147,6 +169,9 @@ of the reader files so a session can be tied to the exact material it used.
 
 ## Calibration checklist
 
+- Complete the four primer lookups in the stated order, prepare the paper
+  Adventure Sheet, and confirm the reader says they are ready before showing
+  S01.
 - Start with a written purpose or hypothesis and the current reader files.
 - Confirm the session starts at S01 with Conan's fixed attributes, Fortune
   10/10, Stamina 6/6, Exposure 0/5, and Sword.
