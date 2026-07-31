@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-31
 
-**Status:** Written specification for user review
+**Status:** Approved for implementation
 
 **First title:** Robert E. Howard's *The Tower of the Elephant*
 
