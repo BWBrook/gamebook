@@ -24,21 +24,27 @@ the printed maximum.
 
 ### Exposure
 
+Exposure measures the growing risk that Conan's intrusion will be noticed.
 Circle the current value; begin at **0**.
 
 **0** | 1 | 2 | 3 | 4 | 5
 
-0–2 — Unconfirmed; 3 — Uneasy; 4 — Search; 5 — Discovered.
+0–2 — Hidden; 3 — Unease; 4 — Search; 5 — Discovery.
 
 ### Possessions
 
-Starting equipment: Sword.
+Sword is Conan's starting possession. Write later possessions here when a
+passage awards them. A later choice may require one; cross it off when a
+passage says it has been used.
 
 - ________________________________________
 - ________________________________________
 - ________________________________________
 
 ### Story marks
+
+Write a story mark here when a passage tells you to record it. A later choice
+may check it. Cross it off when a passage says to.
 
 - ________________________________________
 - ________________________________________

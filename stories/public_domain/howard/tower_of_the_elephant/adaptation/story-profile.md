@@ -62,8 +62,8 @@ more likely to be discovered. It starts at 0 and is capped at 5.
 | Exposure | Fictional state | Passage effect |
 | ---: | --- | --- |
 | 0-2 | The intruders remain unconfirmed. | All listed choices remain available. |
-| 3 | The watch has reason for unease. | Passages acknowledge movement or attention below; lingering choices close. |
-| 4 | A search is beginning. | Only immediate advance or withdrawal choices remain legal. |
+| 3 | The watch has reason for unease. | Passages acknowledge movement or attention below; each passage states any restriction it applies. |
+| 4 | A search is beginning. | Later passages become more urgent; each passage states any restriction it applies. |
 | 5 | The breach is discovered. | Resolve the contextual `E02` crisis; do not reduce the track to preserve the route. |
 
 Exposure increases only for these events in the slice:
