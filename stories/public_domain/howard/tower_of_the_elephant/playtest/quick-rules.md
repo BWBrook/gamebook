@@ -146,110 +146,101 @@ Follow the ending the book gives you.
 
 ## Part II: Rules for This Adventure
 
-### Conan
+### Conan and His Starting Sheet
 
-You play the young but already seasoned Conan. His profile is fixed:
+You play Conan, a Cimmerian wanderer of about seventeen. He is broad-shouldered
+and powerful, yet moves quickly for his size. Hard travel and early fights have
+taught him more than his years suggest. He has come south into the walled
+cities of civilisation, whose laws and customs he sees with an outsider's eye.
+Tonight, pride and a thief's hunger for renown draw him into Yara's tower to
+steal the Heart of the Elephant.
+
+Conan begins with this fixed profile:
 
 `BRN 13 | AGI 12 | CUN 12 | WIL 12 | FOR 10/10 | STM 6/6`
 
-Brawn (BRN) covers force and endurance; Agility (AGI) covers speed and
-physical precision; Cunning (CUN) covers observation, stealth, and guile; and
-Will (WIL) covers courage and self-command. Begin with Fortune 10, Stamina 6,
-Exposure 0, and the Sword. You have no starting story marks.
+Brawn (BRN) concerns force and endurance. Agility (AGI) governs speed and
+physical precision. Conan draws on observation, stealth, and guile through
+Cunning (CUN), while Will (WIL) measures courage and self-command.
 
-These values are Conan's starting state for this playtest, so record them
-before beginning at the first passage.
+Record those four abilities on the Adventure Sheet. Set Fortune to 10 and
+Stamina to 6. Write `Sword` under Possessions and leave the Story Marks area
+empty.
 
 ### Exposure
 
-Exposure tracks evidence, delay, and disturbance that make the intrusion more
-likely to be discovered. It starts at 0 and is capped at 5. Apply every
-printed increase immediately.
+Exposure is the growing risk that Conan's intrusion will be noticed. A passage
+may add Exposure after a delay, a disturbance, or evidence left behind. Mark
+each increase immediately. Begin at 0.
 
-| Exposure | State and effect |
-| ---: | --- |
-| 0–2 | Unconfirmed: no breach is confirmed; follow the passage's printed choices. |
-| 3 | Uneasy: passages acknowledge the watch's attention; follow their printed choices. |
-| 4 | Search: passages acknowledge a search and force urgency in the fiction; follow their printed choices. |
-| 5 | Discovered: resolve `E02`. |
+At 0–2, the night still hides the intrusion. At 3, the watch grows uneasy. At
+4, a search begins, and later passages become more urgent. At 5, the intruders
+are discovered; the current passage sends you to the resulting crisis.
+Exposure can never rise above 5.
+Exposure 3 and 4 do not remove choices by themselves. If the rising danger
+restricts an action, the current passage prints that restriction.
 
-The only printed increases are another patrol interval (+1); a loud or
-avoidable disturbance (+1); a failed Taurus standoff (+1); a natural 20 in
-that standoff (+2); and the amount printed by a lion tactic. No ordinary event
-lowers Exposure. For example, at 2 → 3, mark 3: the watch becomes uneasy and
-later passages acknowledge it. No choice vanishes unless a passage explicitly
-says so.
+For example, suppose a passage adds 1 Exposure because Conan leaves a broken
+shutter swinging in the night air. If the sheet shows 2, change it to 3 at
+once. The watch is now uneasy, and you continue with the choices and
+destination printed in that passage.
 
-### Injury, Recovery, and Death
+### Injury, Recovery, and Action
 
-An authored injury costs 1 or 2 Stamina exactly as the passage prints. A
-clearly stated mortal hazard can send Conan directly to a death ending. If a
-result reduces Stamina to 0, go immediately to `E03`. Fortune has a maximum
-of 10, Stamina a maximum of 6, and Exposure a maximum of 5. No Fortune,
-Stamina, or Exposure recovers in this slice. Mark every loss when it happens.
+Conan's maximum Stamina is 6. When a passage prints a Stamina loss, subtract
+it immediately. If Stamina reaches 0, Conan dies and the passage directs you
+to the death ending. This adventure follows one continuous intrusion, so
+Conan has no opportunity to recover Stamina along the way.
 
-### Tactical Exchanges and Crises
+Suppose an armed stranger bars a narrow stair. Read the situation and every
+available method before you decide. You choose to dart past him and make an
+Agility test because the passage calls for one. A failed roll costs 1 Stamina.
+Mark that printed loss, then follow the destination for the result. Apply every
+printed Stamina and Exposure change before moving to the next passage.
 
-Tactical exchanges are authored choices with stated stakes and consequences,
-not repeated combat rounds. Read every available method before choosing. A
-possession is consumed when its method says to cross it off, and other sheet
-updates happen when printed. After a result, apply printed costs; resolve
-Stamina 0 or Exposure 5; then follow a surviving destination.
-
-Do not invent an extra attack, defence, or escape once the passage has given
-its result.
-
-### Hints for Play
-
-Read every method and stake before deciding. Mark the current passage, check
-each condition, and update the Adventure Sheet immediately. Trust explicit
-terminals when you reach them. Keep the sheet visible whenever a choice names
-a resource, possession, or story mark.
+Keep a finger or marker at your current passage while you consider the
+actions. Check your sheet for any required possession or story mark. Update
+the sheet before turning the page; it is much easier than reconstructing a
+forgotten change later.
 
 ### Rumours of the Tower
 
-Beyond the temple-quarter shadows rise Yara's outer wall, a second barrier,
-and a smooth silver tower whose jewel-crusted rim catches starlight. The Heart
-of the Elephant is said to sustain Yara's long life, and stories of his strange
-power have unsettled bolder thieves than Conan. The rumours promise danger,
-wealth, and little certainty.
+Zamorians lower their voices when they speak of Yara. His silver tower looms
+over the temple quarter, and its jewel-bright rim burns cold beneath the stars.
+Somewhere within lies the Heart of the Elephant, a treasure named in tavern
+whispers but seen by few. Conan means to learn how much truth hides inside the
+tale.
 
 ## Rules at a Glance
 
-### Core Action Flow
+### Tests
 
-1. Read the stakes.
-2. Choose a method.
-3. Capture the target.
-4. Roll and select the die.
-5. Check natural 1 or natural 20.
-6. Compute target - selected die.
-7. Spend Fortune if allowed.
-8. Apply the printed result.
-9. Update the sheet before turning to the destination.
+- Roll one d20 against a named ability. Equal to or below the score succeeds;
+  higher fails. Low rolls are better.
+- Margin is the ability score minus the final die. Positive or zero succeeds;
+  negative fails. Use the degree only when the passage asks for it.
+- After an ordinary roll, each Fortune spent lowers the die by one. On a
+  Fortune test, fix your current Fortune as the score before rolling; later
+  spending leaves that score unchanged.
+- With Advantage, roll two d20s and keep the lower. With Disadvantage, keep the
+  higher.
+- After keeping a die, check natural results. A natural 1 gives the best result
+  printed for the action; a natural 20 gives the worst credible result. Fortune
+  changes neither.
 
-Advantage: roll two d20s and keep the lower selected die.
-Disadvantage: roll two d20s and keep the higher selected die.
+### The Tower
 
-An ordinary final die equal to or below its captured target succeeds; use the
-margin only when the passage asks for it.
-
-Select a die before checking a natural or calculating margin. A locked natural
-has a margin, yet passages never resolve it by the margin.
-
-### Tower Reminders
-
-Spend Fortune only after an ordinary selected die and before resolving it;
-each point lowers that die by one, up to the Fortune remaining. Natural 1 and
-natural 20 are locked. A Fortune test captures current Fortune as its target;
-spending afterward cannot change that target.
-
-At 0 Stamina, go immediately to `E03`. Exposure starts at 0: at 3, passages
-acknowledge the watch's unease; at 4, they acknowledge a search and force
-urgency in the fiction; at 5, resolve `E02`. Exposure 3 or 4 removes no choice
-unless the current passage says so. Record possessions and story marks as
-passages award them; cross either off only when instructed. In a tactical
-exchange, choose an available method and apply its printed cost. Always resolve
-Stamina 0 or Exposure 5 before following a surviving destination. Fortune,
-Stamina, and Exposure do not recover in this slice. Stop at an explicit
-terminal.
+- Start with `BRN 13 | AGI 12 | CUN 12 | WIL 12 | FOR 10/10 | STM 6/6`.
+  Write `Sword` under Possessions. Leave Story Marks empty and set Exposure to
+  0.
+- Stamina has a maximum of 6. Apply every printed loss immediately. At 0,
+  Conan dies. He recovers no Stamina during this continuous intrusion.
+- Record possessions when awarded. A later action may require one; cross it
+  off when instructed. Treat story marks the same way.
+- Exposure measures the risk of discovery. At 0–2, night hides the intrusion;
+  at 3, the watch grows uneasy; at 4, a search begins and later passages become
+  more urgent; at 5, the intruders are discovered and the current passage
+  sends you to the crisis. Values 3 and 4 remove no choices by themselves.
+  Fortune and Exposure never recover here.
+- Apply printed Stamina and Exposure changes before following the next
+  destination. Keep your current passage marked until the sheet is up to date.
