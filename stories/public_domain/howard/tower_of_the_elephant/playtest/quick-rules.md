@@ -2,128 +2,147 @@
 
 ## Before You Begin
 
-To play, you need this book, its Adventure Sheet, a pen or pencil, and one
-twenty-sided die (d20). A second d20 is optional but convenient when a rule
-calls for Advantage or Disadvantage. Keep the sheet beside the book. It holds
-the facts that passages ask you to consult, as well as the changing resources
-and marks that your choices create. Read a passage, decide what Conan does,
-and follow its printed instruction before moving on. There is no character
-creation: this book supplies the protagonist and his starting state, so you
-can begin at once.
+This book is part of a developing *Sinew & Steel* gamebook series, which turns
+classic stories into adventures you can play alone. This first adaptation
+draws on Robert E. Howard's *The Tower of the Elephant*. Your choices and die
+rolls guide its hero through the tale.
 
-These gamebook rules are adapted from *Sinew & Steel*, a d20 tabletop role-playing game by Barry W. Brook. You need no knowledge of that system; everything required to play appears here.
+Night has fallen on Zamora, a thief-city where fortunes change hands in dark
+alleys and crowded taverns. Above its temples rises Yara's silver tower. The
+fabulous Heart of the Elephant lies somewhere within, and Conan has decided
+to steal it.
+
+Conan of Cimmeria is about seventeen. A harsh upbringing, hard travel, and
+early violence have already made him unusually formidable, though much of his
+life still lies ahead. In *The Phoenix on the Sword*, the imagined Nemedian
+chroniclers call him "a thief, a reaver, a slayer, with gigantic melancholies and gigantic mirth".
+That is a glimpse of the man this young wanderer will become.
+
+To play, you need this book, its Adventure Sheet, a pen or pencil, and one
+twenty-sided die, called a d20. A second d20 is useful but optional. Keep the
+sheet and die close at hand.
+
+The rules come from *Sinew & Steel*, Barry W. Brook's d20 tabletop
+role-playing game. You may come to it with no role-playing or gamebook
+experience. This book contains every rule needed to play.
 
 ## Part I: How to Play
 
 ### Your Adventure Sheet
 
-The Adventure Sheet is the record of this attempt. Each title supplies a fixed
-protagonist with four broad capabilities. The first covers force and endurance;
-the second, speed and physical precision; the third, observation, stealth, and
-guile; the fourth, courage and self-command. Part II supplies this title's
-names and values for them. Capture the listed capability value as the target
-for a test.
+Your Adventure Sheet remembers what Conan can do and what happens to him. It
+holds his four broad abilities, his condition, his equipment, and the
+discoveries he makes. This book gives you his starting details before the
+adventure begins.
 
-Record changes as soon as a passage prints them. Cross off a spent possession,
-reduce a resource when instructed, and write down a new story mark exactly as
-given. A clean, current sheet prevents a later choice from using something
-Conan no longer has.
+Keep the sheet beside you and mark each change as soon as a passage tells you
+to. Later choices will rely on what you have written there.
 
 ### Reading the Adventure
 
-Read only the passage you have reached. It sets the situation and offers
-choices or directions. Choose Conan's action, then turn to the printed
-destination. A condition beside a choice is binding: take it only when your
-sheet meets it. Apply every printed state update before reading the next
+Read the passage you have reached. It describes the situation and gives you
+the actions available to Conan. Choose one, follow the destination printed
+beside it, and make any changes to the Adventure Sheet immediately. If a
+choice asks for something on your sheet, you may take it only when the sheet
+says Conan has it. Some choices print another condition; check it before you
+choose. Finish the chosen instructions in order before you turn to the next
 passage.
-
-Choices are meaningful because they alter what follows. Do not invent a
-shortcut, retry a result, or borrow an unprinted option. The book tells you
-when Conan can attempt escape, evasion, or withdrawal; those actions are
-available only when they are printed.
 
 ### When the Story Calls for a Test
 
-A test resolves a moment where the chosen method and stakes matter. First,
-read what success may gain and failure may cost. Choose Conan's method from
-the available options. The passage names the relevant attribute; capture its
-target before rolling. Roll one d20 unless it gives Advantage or Disadvantage.
-An ordinary selected result equal to or below the captured target succeeds; a
-higher result fails. Follow the printed result for that final die.
+A test decides whether Conan succeeds at a difficult action. The passage names
+the ability he is using. Find that ability's score on your Adventure Sheet and
+roll one d20. If the die is equal to or below the score, you succeed. If it is
+higher, you fail. With a score of 13, you succeed on 13 or less and fail on 14
+or more. Low rolls are better. Apply the result the passage gives you, then
+follow its destination.
 
-A captured target of 12 succeeds on a selected 12 and fails on a selected 13.
-Record any printed cost, reward, possession, or story mark before continuing.
+### Margin
+
+Sometimes the story needs to know how well you succeeded or how badly you
+failed. This is your Margin: subtract the die from the score. With a score of
+13 and a roll of 9, your Margin is `13 - 9 = 4`.
+
+A positive Margin is a success. Zero is the narrowest possible success. A
+negative Margin is a failure. The distance from zero shows the degree, so a
+passage can give stronger or weaker results. Many passages ask only whether
+you succeeded or failed. When degree matters, a Margin of 4 is a stronger
+success than a Margin of 1, while -4 is a worse failure than -1.
+
+### Fortune
+
+Fortune is a limited reserve that can lower a roll after you see it. Each point
+spent lowers the die by one. Suppose your score is 11 and you roll 14. Your
+Margin is -3, a failure. You have 8
+Fortune and spend 3, lowering the die from 14 to 11. Your new Margin is 0, so
+you succeed, and you have 5 Fortune left. Mark the new total on your sheet.
+You can spend only the Fortune you have.
+
+A Fortune test works much the same way, with one important step. Write down
+your current Fortune before rolling; that number is the score for this test.
+For example, you have 7 Fortune and roll 9. You may spend 2 Fortune to lower
+the die to 7 and succeed. The score fixed before the roll stays at 7, while
+your Fortune reserve falls to 5.
 
 ### Advantage and Disadvantage
 
-Advantage represents a useful position, preparation, or method. Roll two d20s
-and keep the lower result. Disadvantage represents a compromised position or a
-poorly suited method. Roll two d20s and keep the higher result. In either case,
-that kept result is the selected die. Select it before checking natural results,
-calculating margin, or deciding whether to spend Fortune.
-
-The passage tells you when either condition applies. Do not add bonuses,
-penalties, or a second roll on your own. Record its printed consequence.
+Remember: low is good. With Advantage, roll two d20s and keep the lower die.
+Conan might gain Advantage by bracing himself before forcing a stuck door.
+With Disadvantage, roll two d20s and keep the higher die. He might suffer
+Disadvantage while feeling for a latch in complete darkness. The passage tells
+you when either rule applies.
 
 ### Natural Results
 
-After selecting the die, check for a natural result. A selected natural 1 is a
-locked exceptional result: follow its printed instruction. A selected natural
-20 is also locked: follow the passage's stated worst credible result. These
-results are decided before Fortune is used; record the consequence given.
-
-### Margin and Fortune
-
-Margin is the captured target minus the selected die. A target of 12 and a die
-of 9 gives margin 3; a die of 15 gives margin -3. A selected natural also has
-a margin, but it is resolution-inert because the natural result is locked.
-Margin otherwise has no independent effect unless the passage explicitly reads
-it.
-
-After seeing an ordinary selected die, you may spend Fortune to lower it. Each
-point spent lowers the die by one. Recalculate the final margin, resolve the
-final die against the captured target, then deduct and record the Fortune. You
-cannot spend more than remains. For a Fortune test, current Fortune is the
-captured target; spending after that point does not alter it.
+Once you have chosen the die to keep, check its natural result. A natural 1 is
+the best result printed for that action. A natural 20 brings the worst credible
+result the passage describes. Fortune cannot change either natural result.
+Record a natural 1 or natural 20 exactly as rolled.
 
 ### A Worked Conan Example
 
-This is a practice vignette, not a numbered passage in the adventure; do not
-mark the real sheet. In a moonlit garden below a dark tower, a passage gives
-meaningful stakes: Conan can slip past a sentry's attention, but failure will
-raise an alarm. He chooses a quiet route, and the captured attribute target is
-12. The selected ordinary die is 15, so the provisional margin is 12 - 15 =
--3. The reader spends 3 Fortune. The final die is 12 and the final margin is
-0. Conan succeeds. Fortune falls from 10 to 7. The reader follows the printed
-success.
+Use the figures printed in this example and leave your Adventure Sheet
+unchanged.
 
-If that selected die had been a natural 20, it would be locked and Fortune
-could not change it. Leave the real Adventure Sheet blank.
+Imagine that a passage places you in a walled courtyard below the silver
+tower. It offers two actions: climb a rain-slick pillar to reach a balcony, or
+force a side door. You choose the climb. The passage tells you which ability
+to use, and its score in this example is 12.
+
+You roll 15. Your Margin is `12 - 15 = -3`, so the attempt would fail. You
+decide to spend 3 Fortune, lowering the roll from 15 to 12. Your final Margin
+is 0, the narrowest success. Fortune falls from 10 to 7. You make the climb
+and follow the successful destination printed by the imaginary passage.
+
+Now suppose you had rolled a natural 20. Fortune could not change it. You
+would follow the worst credible result printed for the climb.
 
 ### Stamina, Possessions, and Story Marks
 
-Stamina measures Conan's capacity to survive injury. A passage applies an
-authored loss directly; cross off the amount it prints. It may instead direct
-you straight to a death ending for a clearly mortal hazard. If a printed result
-reduces Stamina to 0, follow that passage's explicit instruction immediately.
-There is no rescue roll or automatic recovery unless the book says so.
+Stamina is Conan's ability to keep going after injury. A passage prints how
+much Stamina he loses and tells you what happens if it reaches zero. Conan
+recovers Stamina only when a passage says so; the current Tower adventure
+offers no recovery.
 
-Possessions may meet a condition, open a method, or be consumed. Story marks
-are facts about what Conan has learned, done, or changed. Write them when
-awarded, consult them when required, and cross them off only when instructed.
+The Sword is Conan's starting possession. Other possessions enter play in a
+simple way: a passage awards one, you write it on the sheet, and a later choice
+may require it. Cross it off when a passage says it has been used.
+
+Story marks remember important facts. A passage might tell you to write
+`Recognised the temple seal`. Later, a choice might be open only if your sheet
+has that exact phrase. Keep the mark until a passage tells you to cross it off.
 
 ### Tactical Exchanges and Endings
 
-A tactical exchange is an authored sequence of choices and consequences, not
-a cycle of enemy statistics and repeated combat rounds. Read the stakes,
-choose a listed method, make the test called for, and apply its printed cost or
-result. Record any possession or story-mark use at once.
+Tactical action follows the same rhythm. Imagine a knife-fighter blocking
+Conan beside an empty cistern. The passage might let you rush him, trick him,
+or use a possession. Those methods can use different abilities and carry
+different consequences. Choose once, roll if the passage asks, apply the
+result, and follow its printed destination.
 
-Some terminals explicitly end this slice: death ends Conan's attempt;
-withdrawal ends it alive; a crisis may end it through the adventure's stated
-danger; and a slice-complete ending closes this section while the wider story
-may continue. When you reach one, stop. Do not seek an unprinted recovery,
-escape, continuation, or alternate ending.
+An ending tells you what has happened in familiar terms: the adventure ends
+here, Conan dies, Conan withdraws, or this part of the adventure is complete.
+Follow the ending the book gives you.
 
 ## Part II: Rules for This Adventure
 
