@@ -14,7 +14,7 @@ to steal it.
 
 Conan of Cimmeria is about seventeen. A harsh upbringing, hard travel, and
 early violence have already made him unusually formidable, though much of his
-life still lies ahead. In *The Phoenix on the Sword*, the imagined Nemedian
+life still lies ahead. In *The Phoenix on the Sword*, the Nemedian
 chroniclers call him "a thief, a reaver, a slayer, with gigantic melancholies and gigantic mirth".
 That is a glimpse of the man this young wanderer will become.
 
