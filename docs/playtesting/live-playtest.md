@@ -31,12 +31,12 @@ two physical d20s available. The default session location is
 ## Start a Tower session
 
 ```bash
-python3 tools/live_playtest.py start tower-calibration-02 \
+python3 tools/live_playtest.py start tower-calibration-03 \
   --story stories/public_domain/howard/tower_of_the_elephant/playtest/slice-01.md \
   --rules stories/public_domain/howard/tower_of_the_elephant/playtest/quick-rules.md \
   --sheet stories/public_domain/howard/tower_of_the_elephant/playtest/adventure-sheet.md \
-  --purpose "Primer-first natural calibration" \
-  --hypothesis "A reader with no knowledge of Sinew & Steel can prepare the Adventure Sheet, understand the routine play loop and Tower-specific state, and enter S01 without external explanation." \
+  --purpose "Third reader-first primer calibration" \
+  --hypothesis "A new reader can enter the story after learning the rules through warm, concrete explanation and examples, without prior knowledge of Howard, gamebooks, or Sinew & Steel." \
   --start-passage S01 \
   --attribute BRN=13 \
   --attribute AGI=12 \
@@ -53,24 +53,50 @@ For a repeat session, use a new session ID and a written `--purpose` or
 
 ## Primer-first calibration
 
-This second run calibrates clarity and usability rather than complete blindness,
-because the first reader has already seen S01 and Exposure. Later testing needs
-readers unfamiliar with both Sinew & Steel and this slice.
+`tower-calibration-02` remains the paused record of the rejected presentation.
+Preserve its local evidence. Do not resume it: the reader-file hashes change
+with this rewrite, so the harness will reject a resumed session against the
+current files.
+
+`tower-calibration-03` is a fresh calibration of the reader-first primer. It
+asks whether a new reader can enter the story after warm, concrete rules
+explanation and examples, without prior knowledge of Howard, gamebooks, or
+*Sinew & Steel*.
+
+The harness records a `lookup` for a whole H2 section. That is the evidence
+unit; it is not the amount presented at once. Present the `Before You Begin`
+opening as one chunk. For each later H2 lookup, present no more than one or two
+H3 subsections at a time. After every chunk, pause and record the reader's
+first reaction before explaining anything. Answer only material the reader has
+already reached, then continue when the reader says they are ready.
 
 ```bash
-python3 tools/live_playtest.py lookup tower-calibration-02 --section "Before You Begin"
-python3 tools/live_playtest.py lookup tower-calibration-02 --section "Part I: How to Play"
-python3 tools/live_playtest.py lookup tower-calibration-02 --section "Part II: Rules for This Adventure"
-python3 tools/live_playtest.py lookup tower-calibration-02 --section "Rules at a Glance"
-python3 tools/live_playtest.py note tower-calibration-02 --kind operator \
-  --text "Adventure Sheet presented; reader says they are ready for S01"
-python3 tools/live_playtest.py show tower-calibration-02
+python3 tools/live_playtest.py lookup tower-calibration-03 --section "Before You Begin"
+python3 tools/live_playtest.py lookup tower-calibration-03 --section "Part I: How to Play"
+python3 tools/live_playtest.py lookup tower-calibration-03 --section "Part II: Rules for This Adventure"
+python3 tools/live_playtest.py lookup tower-calibration-03 --section "Rules at a Glance"
 ```
 
-Record each spontaneous rules question or confusion before answering. Answer
-only from reached reader material and the primer; pause before S01 if a
-procedural question remains unresolved; show S01 only after the reader says
-they are ready.
+Keep those four whole-H2 lookups in that order. After the fourth lookup, present
+the Adventure Sheet. Record its first reaction before explaining it. Do not
+show S01 until the reader has reviewed all four primer sections and the sheet,
+then explicitly says they are ready:
+
+```bash
+python3 tools/live_playtest.py note tower-calibration-03 --kind operator \
+  --text "Adventure Sheet reviewed; reader explicitly says they are ready for S01"
+python3 tools/live_playtest.py show tower-calibration-03
+```
+
+Use the following only when the fresh session is under way. They are examples
+of session handling, not instructions to start a session while preparing this
+protocol:
+
+```bash
+python3 tools/live_playtest.py pause tower-calibration-03 --reason "Reader requested a break"
+python3 tools/live_playtest.py resume tower-calibration-03
+python3 tools/live_playtest.py finish tower-calibration-03 --outcome "Printed slice outcome"
+```
 
 ## Live operating sequence
 
@@ -144,8 +170,10 @@ as part of the evidence.
 
 Use `pause` with a factual reason before an interruption. On return, use
 `resume`; it reloads the session and verifies the reader hashes before a new
-event can be recorded. A finished session is read-only apart from `state` and
-`report`.
+event can be recorded. Resume only `tower-calibration-03` during this
+calibration. `tower-calibration-02` is preserved but non-resumable because its
+reader-file hashes no longer match. A finished session is read-only apart from
+`state` and `report`.
 
 ## Cache recovery
 
@@ -169,9 +197,12 @@ of the reader files so a session can be tied to the exact material it used.
 
 ## Calibration checklist
 
-- Complete the four primer lookups in the stated order, prepare the paper
-  Adventure Sheet, and confirm the reader says they are ready before showing
-  S01.
+- Record the four whole-H2 primer lookups in the stated order. Present the
+  opening as one chunk and later H2 material as one or two H3 subsections at a
+  time; record each first reaction before explaining.
+- Present the paper Adventure Sheet after Rules at a Glance. Confirm the reader
+  has reviewed every primer part and the sheet, then explicitly says they are
+  ready before showing S01.
 - Start with a written purpose or hypothesis and the current reader files.
 - Confirm the session starts at S01 with Conan's fixed attributes, Fortune
   10/10, Stamina 6/6, Exposure 0/5, and Sword.
