@@ -30,7 +30,7 @@ experience. This book contains every rule needed to play.
 
 ### Your Adventure Sheet
 
-Your Adventure Sheet remembers what Conan can do and what happens to him. It
+Your Adventure Sheet records what Conan can do and what happens to him. It
 holds his four broad abilities, his condition, his equipment, and the
 discoveries he makes. This book gives you his starting details before the
 adventure begins.
@@ -44,9 +44,9 @@ Read the passage you have reached. It describes the situation and gives you
 the actions available to Conan. Choose one, follow the destination printed
 beside it, and make any changes to the Adventure Sheet immediately. If a
 choice asks for something on your sheet, you may take it only when the sheet
-says Conan has it. Some choices print another condition; check it before you
-choose. Finish the chosen instructions in order before you turn to the next
-passage.
+says Conan has it. Choices might also prescribe other conditions; check them
+before you choose. Finish the chosen instructions in order before you turn to
+the next passage.
 
 ### When the Story Calls for a Test
 
@@ -71,51 +71,43 @@ success than a Margin of 1, while -4 is a worse failure than -1.
 
 ### Fortune
 
-Fortune is a limited reserve that can lower a roll after you see it. Each point
-spent lowers the die by one. Suppose your score is 11 and you roll 14. Your
-Margin is -3, a failure. You have 8
-Fortune and spend 3, lowering the die from 14 to 11. Your new Margin is 0, so
-you succeed, and you have 5 Fortune left. Mark the new total on your sheet.
-You can spend only the Fortune you have.
+Fortune is Conan's luck in a tight corner. In play, it is a limited reserve
+that can lower a roll after you see it. Each point spent lowers the die by one.
+Use the figures in this example and leave your Adventure Sheet unchanged. A
+passage places you in a walled courtyard below the silver tower and offers two
+actions: climb a rain-slick pillar to reach a balcony, or force a side door.
+You choose the climb, an ability test with a score of 12.
 
-A Fortune test works much the same way, with one important step. Write down
-your current Fortune before rolling; that number is the score for this test.
+You roll 15. Your Margin is `12 - 15 = -3`, so the climb would fail. You spend
+3 Fortune, lowering the roll from 15 to 12. Your final Margin is 0, the
+narrowest success. Fortune falls from 10 to 7. You make the climb and follow
+the successful destination printed by the passage. When this happens during
+the adventure, mark the new Fortune total on your sheet. You can spend only
+the Fortune you have.
+
+Sometimes a passage calls for a Fortune test instead. It works much the same
+way, with one important step. Write down your current Fortune before rolling;
+that number is the score for this test.
 For example, you have 7 Fortune and roll 9. You may spend 2 Fortune to lower
 the die to 7 and succeed. The score fixed before the roll stays at 7, while
 your Fortune reserve falls to 5.
 
 ### Advantage and Disadvantage
 
-Remember: low is good. With Advantage, roll two d20s and keep the lower die.
-Conan might gain Advantage by bracing himself before forcing a stuck door.
-With Disadvantage, roll two d20s and keep the higher die. He might suffer
-Disadvantage while feeling for a latch in complete darkness. The passage tells
-you when either rule applies.
+Remember: low is good, because this is a roll-under system. With Advantage,
+roll two d20s and keep the lower die. Conan might gain Advantage by bracing
+himself before forcing a stuck door. With Disadvantage, roll two d20s and keep
+the higher die. He might suffer Disadvantage while feeling for a latch in
+complete darkness. The passage tells you when either rule applies.
 
 ### Natural Results
 
 Once you have chosen the die to keep, check its natural result. A natural 1 is
 the best result printed for that action. A natural 20 brings the worst credible
 result the passage describes. Fortune cannot change either natural result.
-Record a natural 1 or natural 20 exactly as rolled.
-
-### A Worked Conan Example
-
-Use the figures printed in this example and leave your Adventure Sheet
-unchanged.
-
-Imagine that a passage places you in a walled courtyard below the silver
-tower. It offers two actions: climb a rain-slick pillar to reach a balcony, or
-force a side door. You choose the climb. The passage tells you which ability
-to use, and its score in this example is 12.
-
-You roll 15. Your Margin is `12 - 15 = -3`, so the attempt would fail. You
-decide to spend 3 Fortune, lowering the roll from 15 to 12. Your final Margin
-is 0, the narrowest success. Fortune falls from 10 to 7. You make the climb
-and follow the successful destination printed by the imaginary passage.
-
-Now suppose you had rolled a natural 20. Fortune could not change it. You
-would follow the worst credible result printed for the climb.
+Record a natural 1 or natural 20 exactly as rolled. If the courtyard climb
+above had produced a natural 20, you would keep the 20 and follow the worst
+credible result printed for the climb.
 
 ### Stamina, Possessions, and Story Marks
 
