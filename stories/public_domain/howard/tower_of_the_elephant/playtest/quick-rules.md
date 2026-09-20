@@ -24,7 +24,9 @@ sheet and die close at hand.
 
 The rules come from *Sinew & Steel*, Barry W. Brook's d20 tabletop
 role-playing game. You may come to it with no role-playing or gamebook
-experience. This book contains every rule needed to play.
+experience. This book contains every rule needed to play, and the whole of it
+fits in a sentence: roll low, spend your luck on close calls, and do not get
+noticed.
 
 ## Part I: How to Play
 
@@ -61,13 +63,10 @@ follow its destination.
 
 Sometimes the story needs to know how well you succeeded or how badly you
 failed. This is your Margin: subtract the die from the score. With a score of
-13 and a roll of 9, your Margin is `13 - 9 = 4`.
-
-A positive Margin is a success. Zero is the narrowest possible success. A
-negative Margin is a failure. The distance from zero shows the degree, so a
-passage can give stronger or weaker results. Many passages ask only whether
-you succeeded or failed. When degree matters, a Margin of 4 is a stronger
-success than a Margin of 1, while -4 is a worse failure than -1.
+13 and a roll of 9, your Margin is `13 - 9 = 4`. A positive Margin is a
+success, zero is the narrowest possible success, and a negative Margin is a
+failure. Most passages ask only whether you succeeded; when one wants the
+degree, it says so. Margin matters most for Fortune, which comes next.
 
 ### Fortune
 
@@ -165,24 +164,25 @@ Exposure is the growing risk that Conan's intrusion will be noticed. A passage
 may add Exposure after a delay, a disturbance, or evidence left behind. Mark
 each increase immediately. Begin at 0.
 
-At 0–2, the night still hides the intrusion. At 3, the watch grows uneasy. At
-4, a search begins, and later passages become more urgent. At 5, the intruders
-are discovered; the current passage sends you to the resulting crisis.
-Exposure can never rise above 5.
-Exposure 3 and 4 do not remove choices by themselves. If the rising danger
-restricts an action, the current passage prints that restriction.
+At 0–2, the night still hides the intrusion. At 3 or 4, the watch has begun to
+look for something, and passages will tell you what Conan hears of it. At 5,
+the intruders are discovered, and the passage you are in sends you to the
+crisis. Exposure can never rise above 5, and in this adventure it never falls.
 
 For example, suppose a passage adds 1 Exposure because Conan leaves a broken
 shutter swinging in the night air. If the sheet shows 2, change it to 3 at
-once. The watch is now uneasy, and you continue with the choices and
-destination printed in that passage.
+once, then continue with the choices printed in that passage. A later passage
+may ask whether your Exposure is 3 or higher, and you will have the answer.
 
 ### Injury, Recovery, and Action
 
 Conan's maximum Stamina is 6. When a passage prints a Stamina loss, subtract
 it immediately. If Stamina reaches 0, Conan dies and the passage directs you
-to the death ending. This adventure follows one continuous intrusion, so
-Conan has no opportunity to recover Stamina along the way.
+to the death ending. Some dangers are worse than that: a passage may warn you
+that a natural 20 on a particular action kills outright, whatever your
+Stamina. Read such warnings before you choose, not after you roll. This
+adventure follows one continuous intrusion, so Conan has no opportunity to
+recover Stamina along the way.
 
 Suppose an armed stranger bars a narrow stair. Read the situation and every
 available method before you decide. You choose to dart past him and make an
@@ -230,9 +230,10 @@ tale.
 - Record possessions when awarded. A later action may require one; cross it
   off when instructed. Treat story marks the same way.
 - Exposure measures the risk of discovery. At 0–2, night hides the intrusion;
-  at 3, the watch grows uneasy; at 4, a search begins and later passages become
-  more urgent; at 5, the intruders are discovered and the current passage
-  sends you to the crisis. Values 3 and 4 remove no choices by themselves.
+  at 3 or 4, the watch is looking and passages say what Conan hears; at 5, the
+  intruders are discovered and the current passage sends you to the crisis.
   Fortune and Exposure never recover here.
+- A passage may warn that a natural 20 on one action kills outright. Read
+  every method's warning before choosing.
 - Apply printed Stamina and Exposure changes before following the next
   destination. Keep your current passage marked until the sheet is up to date.

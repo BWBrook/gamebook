@@ -1,5 +1,12 @@
 # Outer Wall Slice Audit
 
+> **Superseded in part.** This audit records the slice as it stood on 31 July
+> 2026. The passages, story profile, and primer were revised on 7 September
+> 2026 (see the revision note at the top of `../adaptation/story-profile.md`).
+> The source crosswalk and the reader-only procedure remain valid history; the
+> deterministic route tables, edge inventory, and the `S05`/`S11` mechanics
+> described below no longer match the current text and await a fresh audit.
+
 ## Scope
 
 This audit covers the paper-playable infiltration slice in

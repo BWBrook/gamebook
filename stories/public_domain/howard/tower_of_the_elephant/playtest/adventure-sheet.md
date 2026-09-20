@@ -29,7 +29,7 @@ Circle the current value; begin at **0**.
 
 **0** | 1 | 2 | 3 | 4 | 5
 
-0–2 — Hidden; 3 — Unease; 4 — Search; 5 — Discovery.
+0–2 — Hidden; 3–4 — The watch is looking; 5 — Discovered.
 
 ### Possessions
 
