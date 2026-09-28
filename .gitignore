@@ -20,3 +20,8 @@
 # Temporary files
 *.tmp
 *.temp
+
+# Local Python runtime and bytecode
+.venv/
+__pycache__/
+*.pyc

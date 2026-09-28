@@ -15,8 +15,12 @@ now has a
 [*Tower of the Elephant* adaptation map](stories/public_domain/howard/tower_of_the_elephant/adaptation/map.md)
 and a
 [paper-playable outer-wall slice](stories/public_domain/howard/tower_of_the_elephant/playtest/slice-01.md).
-The passage schema, deterministic tooling, and AI facilitation remain later
-increments.
+An optional [local browser reader](docs/playtesting/browser-reader.md) now adds
+clickable choices, physical-dice entry, automatic bookkeeping, saved readings
+and quotation-linked feedback for this slice. Double-click `Play Tower.command`
+to open it on this MacBook. The authored Markdown remains the prose source.
+A general passage schema, later adventure slices and AI facilitation remain
+future work.
 
 ## Background research
 

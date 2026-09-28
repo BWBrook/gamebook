@@ -1,0 +1,9 @@
+[project]
+name = "gamebook-reader"
+version = "0.1.0"
+description = "Local annotated reader for the Tower of the Elephant playtest"
+requires-python = ">=3.10"
+dependencies = ["mistune>=3.1,<4"]
+
+[tool.uv]
+package = false

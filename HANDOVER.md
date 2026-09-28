@@ -1,5 +1,33 @@
 # Gamebook — successor handover
 
+## Current update — 20 September 2026
+
+The editorial pass was accepted and committed as `aeb6cd6`. Barry retained
+death on a kept natural 20 for every lion method. That decision supersedes
+the earlier draft's survivable evasive result.
+
+Barry then approved a local browser reader as the next playtest surface, with
+clickable choices, physical dice, automatic bookkeeping and inline notes. The
+implementation is described in [browser-reader.md](docs/playtesting/browser-reader.md).
+Use `Play Tower.command`, or `uv run python -m tools.reader_server --open`.
+Browser sessions live separately in `.playtest/browser-sessions/`. Keep all
+existing calibration evidence. The browser reader is not a completed whole
+adventure, a general engine, or evidence that human playtesting has happened.
+
+The text-protection boundary described below applied to the earlier primer-only
+rewrite. It is not a permanent prohibition on separately authorised adventure
+edits. The current source fingerprint is checked by `tools/reader_engine.py`;
+reader sessions preserve their own text snapshots. The original review position
+below is historical, not a fresh instruction to restart an approval sequence.
+Barry explicitly begins a reading through the interface when ready.
+
+The correspondence board's **Gamebook** project, discussion 47, is the primary
+Astra/Fable venue. Astra implements; Fable's limited budget is reserved for
+focused advisory and critical work. Preserve disagreements and distinguish
+human play evidence from automated verification.
+
+## Earlier handover — historical context
+
 Prepared for Barry W. Brook on 7 September 2026. Start here; the old conversation
 is not required. This is a current-state briefing, not a new design mandate.
 
