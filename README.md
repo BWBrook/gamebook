@@ -1,5 +1,7 @@
 # Gamebook
 
+> **Status:** developed in the open as a working record. This is work in progress: contents may change, and nothing here is peer-reviewed unless stated.
+
 A project to develop a streamlined gamebook system based on a cut-down version
 of Barry W. Brook's full RPG ruleset.
 
@@ -37,3 +39,7 @@ future work.
 
 The Tower workspace records source provenance, conversion, and the applicable
 rights basis alongside its adaptation work.
+
+## Licence
+
+Code is released under the [MIT Licence](LICENSE). Text, figures and data created for this project are released under [CC BY-SA 4.0](LICENSE-CONTENT). Third-party material keeps its own terms where stated.
