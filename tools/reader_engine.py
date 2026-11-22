@@ -15,7 +15,7 @@ from typing import Any
 
 from tools.live_playtest import apply_fortune, resolve_roll
 
-CONTENT_SHA256 = "c65e1f7289278edbdce55b6e211f58a646bb91cfe678d0c00490ffb54dc353d0"
+CONTENT_SHA256 = "822e336e0bbe7b3256c81b5c2f9d1bd0bfce52ffd519ad61cd601037c0f924d3"
 WARNED = "Warned by the silence"
 READ = "Read the strangling"
 SPEAR = "Guard's spear"

@@ -2,238 +2,249 @@
 
 ## Before You Begin
 
-This book is part of a developing *Sinew & Steel* gamebook series, which turns
-classic stories into adventures you can play alone. This first adaptation
-draws on Robert E. Howard's *The Tower of the Elephant*. Your choices and die
-rolls guide its hero through the tale.
+Night has fallen over Zamora, city of thieves, where fortunes change hands in
+torchlit alleys and men speak of Yara the sorcerer in hushed voices. High above
+the temple quarter rises his silver tower, and somewhere within lies the Heart
+of the Elephant. Tonight YOU are going in to steal it.
 
-Night has fallen on Zamora, a thief-city where fortunes change hands in dark
-alleys and crowded taverns. Above its temples rises Yara's silver tower. The
-fabulous Heart of the Elephant lies somewhere within, and Conan has decided
-to steal it.
+You play Conan of Cimmeria, a young barbarian wanderer of about seventeen,
+already hardened by fierce hills, long roads, and sudden blood. Years from now,
+in *The Phoenix on the Sword*, the Nemedian chroniclers will remember him as "a
+thief, a reaver, a slayer, with gigantic melancholies and gigantic mirth".
+Tonight he is hungry for renown, armed with a broadsword and a thief's nerve,
+and ready to test himself against sorcery.
 
-Conan of Cimmeria is about seventeen. A harsh upbringing, hard travel, and
-early violence have already made him unusually formidable, though much of his
-life still lies ahead. In *The Phoenix on the Sword*, the Nemedian
-chroniclers call him "a thief, a reaver, a slayer, with gigantic melancholies and gigantic mirth".
-That is a glimpse of the man this young wanderer will become.
+This book adapts Robert E. Howard's classic tale into a solo adventure powered
+by *Hazardry*, Barry W. Brook's d20 tabletop role-playing game (named with a
+nod to Chaucer's Pardoner, who knew well enough what it means to stake
+everything on the cast of a die). You need no knowledge of *Hazardry*, Howard,
+or gamebooks to begin. Everything required to play sits inside these pages.
 
-To play, you need this book, its Adventure Sheet, a pen or pencil, and one
-twenty-sided die, called a d20. A second d20 is useful but optional. Keep the
-sheet and die close at hand.
-
-The rules come from *Sinew & Steel*, Barry W. Brook's d20 tabletop
-role-playing game. You may come to it with no role-playing or gamebook
-experience. This book contains every rule needed to play, and the whole of it
-fits in a sentence: roll low, spend your luck on close calls, and do not get
-noticed.
+Before you set foot in the temple quarter, gather four things: this book, its
+Adventure Sheet, a pencil, and one twenty-sided die (a d20). A second d20 is
+handy, though one will serve. Keep them beside you; you will need them soon
+enough. If you remember only one sentence when the shadows close in, let it be
+this: roll low, spend your luck on close calls, and do not get noticed.
 
 ## Part I: How to Play
 
 ### Your Adventure Sheet
 
-Your Adventure Sheet records what Conan can do and what happens to him. It
-holds his four broad abilities, his condition, his equipment, and the
-discoveries he makes. This book gives you his starting details before the
-adventure begins.
+Your Adventure Sheet records everything Conan can bring to bear and every mark
+the night leaves on him: his four abilities, his reserves of Fortune and
+Stamina, his equipment, and the discoveries he makes along the way. Part II
+gives you his starting numbers before you begin.
 
-Keep the sheet beside you and mark each change as soon as a passage tells you
-to. Later choices will rely on what you have written there.
+Keep the sheet at your elbow and update it the moment a passage tells you to.
+Later choices will turn on what is written there, and memory is a treacherous
+ally once steel is drawn.
 
 ### Reading the Adventure
 
-Read the passage you have reached. It describes the situation and gives you
-the actions available to Conan. Choose one, follow the destination printed
-beside it, and make any changes to the Adventure Sheet immediately. If a
-choice asks for something on your sheet, you may take it only when the sheet
-says Conan has it. Choices might also prescribe other conditions; check them
-before you choose. Finish the chosen instructions in order before you turn to
-the next passage.
+Read the passage you have reached, weigh your options, and pick one. Some
+choices lead straight to another passage; others demand a test of nerve or
+muscle first. If an option asks for an item, a story mark, or some other
+condition on your sheet, you may take it only if your sheet meets that test.
+Carry out the chosen instructions in the order printed, mark any changes to
+your sheet, and only then turn to the next passage.
 
 ### When the Story Calls for a Test
 
-A test decides whether Conan succeeds at a difficult action. The passage names
-the ability he is using. Find that ability's score on your Adventure Sheet and
-roll one d20. If the die is equal to or below the score, you succeed. If it is
-higher, you fail. With a score of 13, you succeed on 13 or less and fail on 14
-or more. Low rolls are better. Apply the result the passage gives you, then
-follow its destination.
+Not every action is yours for the taking. When a feat hangs in the balance,
+such as a silent stalk through dark foliage or a desperate blade-stroke, the
+passage calls for a test and names the ability at stake.
+
+Find that ability's score on your Adventure Sheet and roll one d20. **Equal to
+or below the score succeeds; higher fails.** Low rolls are what you want. With
+a score of 13, any roll from 1 to 13 carries the day, while 14 to 20 goes
+against you. Read the result printed for your roll and follow where it leads.
 
 ### Margin
 
-Sometimes the story needs to know how well you succeeded or how badly you
-failed. This is your Margin: subtract the die from the score. With a score of
-13 and a roll of 9, your Margin is `13 - 9 = 4`. A positive Margin is a
-success, zero is the narrowest possible success, and a negative Margin is a
-failure. Most passages ask only whether you succeeded; when one wants the
-degree, it says so. Margin matters most for Fortune, which comes next.
+Now and then the story cares how cleanly you succeeded or how badly you
+stumbled. Subtract your die from your ability score: that difference is your
+**Margin**. Roll 9 against a score of 13, and your Margin is `13 - 9 = 4`. Zero
+is the narrowest scrape of success; anything below zero is failure. Most tests
+ask only whether you passed or failed. When degree matters, the passage will
+say so. Where Margin earns its keep on almost every roll is Fortune.
 
 ### Fortune
 
-Fortune is Conan's luck in a tight corner. In play, it is a limited reserve
-that can lower a roll after you see it. Each point spent lowers the die by one.
-Use the figures in this example and leave your Adventure Sheet unchanged. A
-passage places you in a walled courtyard below the silver tower and offers two
-actions: climb a rain-slick pillar to reach a balcony, or force a side door.
-You choose the climb, an ability test with a score of 12.
+**Fortune** is Conan's luck in a tight corner, a finite reserve you may spend
+*after* seeing the die. Each point spent lowers an ordinary roll by 1.
 
-You roll 15. Your Margin is `12 - 15 = -3`, so the climb would fail. You spend
-3 Fortune, lowering the roll from 15 to 12. Your final Margin is 0, the
-narrowest success. Fortune falls from 10 to 7. You make the climb and follow
-the successful destination printed by the passage. When this happens during
-the adventure, mark the new Fortune total on your sheet. You can spend only
-the Fortune you have.
+Take a trial scene (leave your Adventure Sheet untouched for this example). You
+stand in a walled courtyard beneath the silver tower: climb a rain-slick pillar
+to a balcony, or force a barred side door. You chance the climb, an ability
+test with a score of 12.
 
-Sometimes a passage calls for a Fortune test instead. It works much the same
-way, with one important step. Write down your current Fortune before rolling;
-that number is the score for this test.
-For example, you have 7 Fortune and roll 9. You may spend 2 Fortune to lower
-the die to 7 and succeed. The score fixed before the roll stays at 7, while
-your Fortune reserve falls to 5.
+Your d20 clatters out a **15**. Your Margin is `12 - 15 = -3`: your fingers are
+slipping. Rather than fall, you spend **3 Fortune**, dragging the 15 down to
+12. Your final Margin becomes 0, just enough to haul yourself over the
+balustrade. Your Fortune drops from 10 to 7, and you turn to the success
+passage. During play, mark the lower Fortune total at once. You can spend only
+the luck you still hold.
+
+Occasionally a passage calls for a **Fortune test**, pure chance with no skill
+to lean on. Write down your current Fortune *before* rolling; that fixed number
+is your target for the test. Say you hold 7 Fortune and roll 9. You may still
+spend 2 Fortune to pull the 9 down to 7 and scrape through. The target you
+fixed before rolling stays at 7, while your remaining Fortune drops to 5.
 
 ### Advantage and Disadvantage
 
-Remember: low is good, because this is a roll-under system. With Advantage,
-roll two d20s and keep the lower die. Conan might gain Advantage by bracing
-himself before forcing a stuck door. With Disadvantage, roll two d20s and keep
-the higher die. He might suffer Disadvantage while feeling for a latch in
-complete darkness. The passage tells you when either rule applies.
+Remember the golden rule of *Hazardry*: **low is good**, because this is a
+roll-under system.
+
+When the odds favour you (bracing against a charge, or striking from surprise),
+the passage grants **Advantage**: roll two d20s and keep the **lower** die.
+When things turn against you (groping for a latch in pitch darkness, or
+fighting off balance), you suffer **Disadvantage**: roll two d20s and keep the
+**higher** die. The passage will always tell you when either applies.
 
 ### Natural Results
 
-Once you have chosen the die to keep, check its natural result. A natural 1 is
-the best result printed for that action. A natural 20 brings the worst credible
-result the passage describes. Fortune cannot change either natural result.
-Record a natural 1 or natural 20 exactly as rolled. If the courtyard climb
-above had produced a natural 20, you would keep the 20 and follow the worst
-credible result printed for the climb.
+Once you have chosen which die to keep, look at the raw face before touching
+your Fortune.
+
+A **natural 1** is a stroke of genius or blind miracle: take the best result
+printed for that action. A **natural 20** is disaster, the worst credible
+outcome the passage describes. **Fortune cannot alter a natural 1 or a natural
+20.** When fate speaks that loudly, you abide by the die. Had that courtyard
+climb above come up a natural 20, no luck on earth would have caught your boot
+before the drop.
 
 ### Stamina, Possessions, and Story Marks
 
-Stamina is Conan's ability to keep going after injury. A passage prints how
-much Stamina he loses and tells you what happens if it reaches zero. Conan
-recovers Stamina only when a passage says so; the current Tower adventure
-offers no recovery.
+**Stamina** measures how much punishment Conan can take and still keep his
+feet. Whenever a passage inflicts a Stamina loss, cross off the boxes at once;
+if they run out, read what the passage says. Conan recovers Stamina only when
+the text explicitly gives him the chance, and on this night's raid none will
+come.
 
-The Sword is Conan's starting possession. Other possessions enter play in a
-simple way: a passage awards one, you write it on the sheet, and a later choice
-may require it. Cross it off when a passage says it has been used.
+Conan begins with his **Sword** alone. When a passage puts another possession
+into your hands, write it on your sheet; a later choice may depend on it. Cross
+it off when the story tells you it is spent, broken, or left behind.
 
-Story marks remember important facts. A passage might tell you to write
-`Recognised the temple seal`. Later, a choice might be open only if your sheet
-has that exact phrase. Keep the mark until a passage tells you to cross it off.
+**Story marks** are short phrases that track what Conan has noticed, learned, or
+triggered. A passage might tell you to write `Recognised the temple seal`. A
+later choice may open only if those exact words sit on your sheet. Leave a mark
+written until a passage tells you to cross it off.
 
 ### Tactical Exchanges and Endings
 
-Tactical action follows the same rhythm. Imagine a knife-fighter blocking
-Conan beside an empty cistern. The passage might let you rush him, trick him,
-or use a possession. Those methods can use different abilities and carry
-different consequences. Choose once, roll if the passage asks, apply the
-result, and follow its printed destination.
+Combat here is no tedious tally of blow and counter-blow. Picture a
+knife-fighter stepping out beside an empty cistern: the passage may let you
+rush him, feint him off balance, or turn a possession to account. Each method
+tests a different ability and risks a different price. Pick your approach, roll
+if asked, apply the outcome, and turn to the passage it names.
 
-An ending tells you what has happened in familiar terms: the adventure ends
-here, Conan dies, Conan withdraws, or this part of the adventure is complete.
-Follow the ending the book gives you.
+When your run reaches an **ending**, the book says so plainly: Conan dies,
+Conan withdraws into the dark, or this chapter of the theft stands complete.
 
 ## Part II: Rules for This Adventure
 
 ### Conan and His Starting Sheet
 
-You play Conan, a Cimmerian wanderer of about seventeen. He is broad-shouldered
-and powerful, yet moves quickly for his size. Hard travel and early fights have
-taught him more than his years suggest. He has come south into the walled
-cities of civilisation, whose laws and customs he sees with an outsider's eye.
-Tonight, pride and a thief's hunger for renown draw him into Yara's tower to
-steal the Heart of the Elephant.
+You step into the sandals of Conan of Cimmeria, about seventeen, broad-shouldered
+and heavy-muscled yet lithe as a hill panther. Hard winters, border fights, and
+long roads have forged him beyond his years. South of the mountains, among the
+corrupt cities of civilisation, he watches laws and priests with a wolf's
+distrust. Tonight pride and a thief's hunger for glory have drawn him to Yara's
+precinct.
 
 Conan begins with this fixed profile:
 
 `BRN 13 | AGI 12 | CUN 12 | WIL 12 | FOR 10/10 | STM 6/6`
 
-Brawn (BRN) concerns force and endurance. Agility (AGI) governs speed and
-physical precision. Conan draws on observation, stealth, and guile through
-Cunning (CUN), while Will (WIL) measures courage and self-command.
+- **Brawn (BRN)** is brute force, grip, and staying power.
+- **Agility (AGI)** governs speed, balance, and physical precision.
+- **Cunning (CUN)** sharpens observation, stealth, and guile.
+- **Will (WIL)** holds his nerve and self-command against fear or sorcery.
 
-Record those four abilities on the Adventure Sheet. Set Fortune to 10 and
-Stamina to 6. Write `Sword` under Possessions and leave the Story Marks area
-empty.
+Copy those four scores onto your Adventure Sheet. Leave all **10 Fortune**
+boxes and **6 Stamina** boxes unmarked, write `Sword` under Possessions, leave
+Story Marks empty, and circle **0** on the Exposure track.
 
 ### Exposure
 
-Exposure is the growing risk that Conan's intrusion will be noticed. A passage
-may add Exposure after a delay, a disturbance, or evidence left behind. Mark
-each increase immediately. Begin at 0.
+**Exposure** tracks the growing danger that Yara's watch will catch wind of an
+intruder. Lingering too long, raising a commotion, or leaving telltale signs
+adds Exposure. Mark every increase the instant a passage calls for it. You
+begin at **0**.
 
-At 0–2, the night still hides the intrusion. At 3 or 4, the watch has begun to
-look for something, and passages will tell you what Conan hears of it. At 5,
-the intruders are discovered, and the passage you are in sends you to the
-crisis. Exposure can never rise above 5, and in this adventure it never falls.
+- **0–2:** The night still covers you.
+- **3–4:** Something has stirred the watch; passages will tell you what sounds
+  carry across the walls.
+- **5:** The breach is blown, and the passage you are in sends you straight to
+  the crisis.
 
-For example, suppose a passage adds 1 Exposure because Conan leaves a broken
-shutter swinging in the night air. If the sheet shows 2, change it to 3 at
-once, then continue with the choices printed in that passage. A later passage
-may ask whether your Exposure is 3 or higher, and you will have the answer.
+Exposure never rises above 5, and on this raid it never drops back down. For
+example, if leaving a broken shutter banging in the breeze adds 1 Exposure when
+your sheet stands at 2, move your circle to 3 at once before turning the page.
+Later passages will check whether your Exposure has reached 3 or higher.
 
 ### Injury, Recovery, and Action
 
-Conan's maximum Stamina is 6. When a passage prints a Stamina loss, subtract
-it immediately. If Stamina reaches 0, Conan dies and the passage directs you
-to the death ending. Some dangers are worse than that: a passage may warn you
-that a natural 20 on a particular action kills outright, whatever your
-Stamina. Read such warnings before you choose, not after you roll. This
-adventure follows one continuous intrusion, so Conan has no opportunity to
-recover Stamina along the way.
+Conan starts with **6 Stamina**. Subtract every printed loss immediately; if
+Stamina hits **0**, Conan falls and you turn to the death ending. Worse still,
+some hazards are too deadly for bruised ribs: a passage may warn you before you
+choose that a **natural 20 kills outright**, whatever Stamina you have left.
+Heed those warnings before your fingers touch the die.
 
-Suppose an armed stranger bars a narrow stair. Read the situation and every
-available method before you decide. You choose to dart past him and make an
-Agility test because the passage calls for one. A failed roll costs 1 Stamina.
-Mark that printed loss, then follow the destination for the result. Apply every
-printed Stamina and Exposure change before moving to the next passage.
+This adventure follows one unbroken night's trespass, with no safe room to bind
+wounds or catch your breath: Conan recovers neither Stamina nor Fortune along
+the way.
 
-Keep a finger or marker at your current passage while you consider the
-actions. Check your sheet for any required possession or story mark. Update
-the sheet before turning the page; it is much easier than reconstructing a
-forgotten change later.
+Suppose an armed stranger bars a narrow stair. Read the whole passage, every
+option and every warning, before committing. You choose to dart past him on an
+Agility test; a missed roll costs 1 Stamina. Mark that loss, mark any Exposure,
+and only then follow the destination printed for your outcome. Keep a finger in
+your current passage while updating your sheet; fixing a missed mark three
+passages later is far harder than getting it right on the spot.
 
 ### Rumours of the Tower
 
-Zamorians lower their voices when they speak of Yara. His silver tower looms
-over the temple quarter, and its jewel-bright rim burns cold beneath the stars.
-Somewhere within lies the Heart of the Elephant, a treasure named in tavern
-whispers but seen by few. Conan means to learn how much truth hides inside the
-tale.
+In the smoky wine-shops of the Maul, even bold thieves lower their voices at
+the name of Yara. The high priest rarely quits his gleaming silver shaft, and
+when he does, ruin falls upon men and kingdoms alike. Men whisper that the King
+of Zamora himself stays half-drunk for dread of him, and that Yara has lived
+for centuries by the sorcery of the Heart of the Elephant.
+
+No lamp burns in that smooth, windowless tower. Beyond its outer wall lies a
+second wall, and beyond that a shadowed garden no Zamorian rogue dares enter.
+No human watchmen walk there, but none who climb in come back out. Still, a
+Cimmerian puts little stock in the terrors of civilised men. Above that
+jewelled rim waits a treasure worth a kingdom—and when your sheet is ready and
+your die lies to hand, the night is yours at **S01**.
 
 ## Rules at a Glance
 
 ### Tests
 
-- Roll one d20 against a named ability. Equal to or below the score succeeds;
-  higher fails. Low rolls are better.
-- Margin is the ability score minus the final die. Positive or zero succeeds;
-  negative fails. Use the degree only when the passage asks for it.
-- After an ordinary roll, each Fortune spent lowers the die by one. On a
-  Fortune test, fix your current Fortune as the score before rolling; later
-  spending leaves that score unchanged.
-- With Advantage, roll two d20s and keep the lower. With Disadvantage, keep the
+- Roll one d20 against the named ability. Equal to or below the score succeeds;
+  higher fails. Low is good.
+- **Margin** = ability score minus final die (0 or higher succeeds; negative
+  fails). Use degree only when the passage asks for it.
+- **Fortune:** after an ordinary roll, spend 1 Fortune per point to lower the
+  die. On a Fortune test, fix your current Fortune as the target *before*
+  rolling; spending lowers the die without changing that target.
+- **Advantage:** roll two d20s, keep the lower. **Disadvantage:** keep the
   higher.
-- After keeping a die, check natural results. A natural 1 gives the best result
-  printed for the action; a natural 20 gives the worst credible result. Fortune
+- **Naturals:** check the kept die before spending Fortune. Natural 1 gives the
+  best printed result; natural 20 gives the worst credible result. Fortune
   changes neither.
 
 ### The Tower
 
-- Start with `BRN 13 | AGI 12 | CUN 12 | WIL 12 | FOR 10/10 | STM 6/6`.
-  Write `Sword` under Possessions. Leave Story Marks empty and set Exposure to
-  0.
-- Stamina has a maximum of 6. Apply every printed loss immediately. At 0,
-  Conan dies. He recovers no Stamina during this continuous intrusion.
-- Record possessions when awarded. A later action may require one; cross it
-  off when instructed. Treat story marks the same way.
-- Exposure measures the risk of discovery. At 0–2, night hides the intrusion;
-  at 3 or 4, the watch is looking and passages say what Conan hears; at 5, the
-  intruders are discovered and the current passage sends you to the crisis.
-  Fortune and Exposure never recover here.
-- A passage may warn that a natural 20 on one action kills outright. Read
-  every method's warning before choosing.
-- Apply printed Stamina and Exposure changes before following the next
-  destination. Keep your current passage marked until the sheet is up to date.
+- Starting sheet: `BRN 13 | AGI 12 | CUN 12 | WIL 12 | FOR 10/10 | STM 6/6`,
+  `Sword` under Possessions, Story Marks empty, Exposure `0`.
+- **Stamina** maxes at 6; at 0, Conan dies. Neither Stamina nor Fortune
+  recovers during this raid.
+- Record possessions and story marks when gained; cross them off when a passage
+  says they are spent or used.
+- **Exposure** (0–5, never falls): 0–2 hidden; 3–4 the watch is searching; 5
+  discovered (follow the crisis).
+- Watch for mortal warnings: some actions kill outright on a natural 20,
+  regardless of Stamina.
+- Apply every printed sheet change before turning to the next passage.

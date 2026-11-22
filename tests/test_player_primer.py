@@ -15,7 +15,7 @@ SHEET = TOWER / "adventure-sheet.md"
 STORY = TOWER / "slice-01.md"
 S01_MARKER = "## S01 — The Outer Wall".encode("utf-8")
 NUMBERED_BODY_SHA256 = (
-    "512338cec8665e77067c31084f3a5bf4e05006840bdfc524558196f9da4cf2c1"
+    "107b8934e115ef062ae435659d352715c666c78c764b6ace0fd3b23f604cc914"
 )
 LINK_RE = re.compile(r"\[[^]]+\]\(([^)]+)\)")
 
